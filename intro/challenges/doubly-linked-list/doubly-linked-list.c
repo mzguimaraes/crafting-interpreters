@@ -2,7 +2,6 @@
 
 // TODO: research C testing and write tests
 
-// creates a node on the heap by reading size characters from input character array.
 struct DoublyLinkedNode *create_node(char *input, size_t size) {
   struct DoublyLinkedNode *node = (struct DoublyLinkedNode*)malloc(sizeof(struct DoublyLinkedNode)); 
 
@@ -17,7 +16,6 @@ struct DoublyLinkedNode *create_node(char *input, size_t size) {
   return node;
 }
 
-// initializes list with provided node. first will be set as the new list's head AND tail
 struct DoublyLinkedList create_list(struct DoublyLinkedNode *first) {
   struct DoublyLinkedList list;
   list.head = first;
@@ -25,7 +23,6 @@ struct DoublyLinkedList create_list(struct DoublyLinkedNode *first) {
   return list;
 }
 
-// frees all memory allocated for node data in this list.
 int free_list(struct DoublyLinkedList *list) {
   struct DoublyLinkedNode *curr = list->head; 
   while (curr != NULL) {
@@ -36,15 +33,12 @@ int free_list(struct DoublyLinkedList *list) {
   return 0;
 }
 
-// frees all memory allocated for node data.
 int free_node(struct DoublyLinkedNode *node) {
   free(node->data);
   free(node);
   return 0;
 }
 
-// formats a string describing node and writes it to dest.
-// ensure dest is large enough to contain the characters used to format the node by initializing with space for at least 20 extra characters
 int format_node_str(char dest[], struct DoublyLinkedNode *node) {
   char format_str[] = "node data: %s";
   int format_strc = sizeof format_str / sizeof format_str[0];
@@ -52,7 +46,6 @@ int format_node_str(char dest[], struct DoublyLinkedNode *node) {
   return 0;
 }
 
-// prints all fields of provided node.
 int print_node_data(struct DoublyLinkedNode *node) {
   printf("\nnode:");
   if (!node) {
@@ -67,8 +60,6 @@ int print_node_data(struct DoublyLinkedNode *node) {
   return 0;
 }
 
-// prints the head node and the tail node of list followed by a printout of the full list.
-// if flag print_list_backwards is set, the list printout will start with list->tail and read through previous nodes until it terminates at list->head.
 int print_list_data(struct DoublyLinkedList *list,  bool print_list_backwards) {
   printf("\nlist data:");
   if (!list) {
@@ -102,7 +93,6 @@ int print_list_data(struct DoublyLinkedList *list,  bool print_list_backwards) {
   return 0;
 }
 
-// inserts new_node into list, after node's position.
 int insert_after(struct DoublyLinkedList *list, struct DoublyLinkedNode *node, struct DoublyLinkedNode *new_node) {
   struct DoublyLinkedNode *after_both = node->next;
   new_node->next = after_both;
@@ -117,7 +107,6 @@ int insert_after(struct DoublyLinkedList *list, struct DoublyLinkedNode *node, s
   return 0;
 }
 
-// inserts new_node into list, before node's position.
 int insert_before(struct DoublyLinkedList *list, struct DoublyLinkedNode *node, struct DoublyLinkedNode *new_node) {
   struct DoublyLinkedNode *before_both = node->prev;
   new_node->next = node;
@@ -132,34 +121,26 @@ int insert_before(struct DoublyLinkedList *list, struct DoublyLinkedNode *node, 
   return 0;
 }
 
-// appends node to the head of the list.
 int insert_head(struct DoublyLinkedList *list, struct DoublyLinkedNode *node) {
   return insert_before(list, list->head, node);
 }
 
-// creates a new node from input char array, reading size characters from it, then appends that node to the head of list.
-// returns the newly created node.
 struct DoublyLinkedNode *insert_str_head(struct DoublyLinkedList *list, char input[], size_t size) {
   struct DoublyLinkedNode *node = create_node(input, size);
   insert_head(list, node);
   return node;
 }
 
-// appends node to the tail of the list.
 int insert_tail(struct DoublyLinkedList *list, struct DoublyLinkedNode *node) {
   return insert_after(list, list->tail, node);
 }
 
-// creates a new node from input char array, reading size characters from it, then appends that node to the tail of list.
-// returns the newly created node.
 struct DoublyLinkedNode *insert_str_tail(struct DoublyLinkedList *list, char input[], size_t size) {
   struct DoublyLinkedNode *node = create_node(input, size);
   insert_tail(list, node);
   return node;
 }
 
-// finds a node in list that has data equal to input, if such a node exists.  
-// if no such node exists, returns NULL.
 struct DoublyLinkedNode *find(struct DoublyLinkedList *list, char *data) {
   struct DoublyLinkedNode *curr = list->head;
   while (curr != NULL) {
@@ -171,9 +152,6 @@ struct DoublyLinkedNode *find(struct DoublyLinkedList *list, char *data) {
   return NULL;
 }
 
-// searches for a node with the provided data in list.  if such a node is found, that node is removed from the list, maintaining continuity of links.
-// if a matching node is found, returns the removed node.
-// if no such node is found, returns NULL.
 struct DoublyLinkedNode *remove_node_with_data(struct DoublyLinkedList *list, char *data) {
   struct DoublyLinkedNode *found = find(list, data);
 
@@ -184,7 +162,6 @@ struct DoublyLinkedNode *remove_node_with_data(struct DoublyLinkedList *list, ch
   return remove_node_from_list(list, found);
 }
 
-// removes node from its list by pointing its neighbors to each other and setting its own neighbor pointers to NULL. 
 struct DoublyLinkedNode *remove_node_from_list(struct DoublyLinkedList *list, struct DoublyLinkedNode *node) {
   if (node == list->head) {
     list->head = node->next;
