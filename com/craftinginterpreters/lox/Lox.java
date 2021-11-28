@@ -10,6 +10,7 @@ import java.util.List;
 
 public class Lox {
     static boolean hadError = false;
+
     public static void main(String[] args) throws IOException {
 
         if (args.length > 1) {
@@ -38,10 +39,11 @@ public class Lox {
             String line = reader.readLine();
             if (line == null) break;
             run(line);
+            hadError = false;
         }
     }
 
-    // runs a string of Lox code
+    // runs a string of Lox code.
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
@@ -49,12 +51,18 @@ public class Lox {
         for (Token token : tokens) {
             System.out.println(token);
         }
+
+        if (hadError) {
+            System.exit(65);
+        }
     }
 
+    // General-purpose error handling function.
     static void error(int lineNumber, String message) {
         report(lineNumber, "", message);
     }
 
+    // report parsing error to user.
     private static void report(int lineNumber, String where, String message) {
         System.err.println("[line " + lineNumber + "] Error" + where + ": " + message);
         hadError = true;
