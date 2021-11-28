@@ -62,12 +62,19 @@ class Scanner {
             case '{': addToken(TokenType.LEFT_BRACE); break;
             case '}': addToken(TokenType.RIGHT_BRACE); break;
             case ',': addToken(TokenType.COMMA); break;
-            // TODO: implement lookahead on dots to support leading-dot numbers.
-            case '.': addToken(TokenType.DOT); break;
             case '-': addToken(TokenType.MINUS); break;
             case '+': addToken(TokenType.PLUS); break;
             case ';': addToken(TokenType.SEMICOLON); break;
             case '*': addToken(TokenType.STAR); break;
+
+            case '.': 
+                // check if this characgter is a leading dot for a number.
+                if (isDigit(peek())) {
+                    number();
+                } else {
+                    addToken(TokenType.DOT); 
+                }
+                break;
 
             // single- or double-char tokens.
             case '!': 
@@ -119,7 +126,7 @@ class Scanner {
                     break;
                 } else {
                     // unparseable tokens.
-                    Lox.error(line, "Unexpected character.");
+                    Lox.error(line, "Unexpected character '" + c + "'.");
                     break;
                 }
         }
@@ -146,6 +153,8 @@ class Scanner {
     }
 
     private void number() {
+        if (peek() == '.') advance();
+
         while (isDigit(peek())) advance();
 
         // Look for a non-integral part.
