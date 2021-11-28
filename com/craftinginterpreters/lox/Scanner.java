@@ -113,8 +113,8 @@ class Scanner {
                 break;
             
             // strings
-            case '"': string(); break;
-            // TODO: support single-quote enclosed strings by extending string() to accept the enclosing character as a parameter.
+            case '"': string('"'); break;
+            case '\'': string('\''); break;
 
             default:
                 // catch number literals, identifiers, and unparseable tokens.
@@ -172,8 +172,8 @@ class Scanner {
         return c >= '0' && c <= '9';
     }
 
-    private void string() {
-        while (peek() != '"' && !isAtEnd()) {
+    private void string(char terminator) {
+        while (peek() != terminator && !isAtEnd()) {
             if (peek() == '\n') line++;
             advance();
         }
