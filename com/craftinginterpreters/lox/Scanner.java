@@ -192,6 +192,8 @@ class Scanner {
 
         // Trim off the enclosing quote marks.
         String value = source.substring(start + 1, current - 1);
+
+        // escape any escape sequences present.
         try {
             value = StringUtils.unescapeString(value);
         } catch (Exception e) {

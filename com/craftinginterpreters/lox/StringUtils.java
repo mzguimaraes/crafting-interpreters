@@ -18,26 +18,21 @@ public class StringUtils {
         escapeSequences.put('\\', "\\");
     }
 
-    // scans through string, replacing any instances of supported escape characters with the character they represent.
-    // e.g. "a\tb" becomes "a   b"
-    // returns the unescaped string.  does not mutate s.
-    // throws if an unrecognized escape sequence is encountered.
-    // supported characters: \b (passed through), \t, \n, \f, \r, \", \', \\
+    /** 
+     *  scans through string, replacing any instances of supported escape characters with the character they represent.
+     * 
+     *  e.g. "a\tb" becomes "a   b"
+     * 
+     *  supported characters: \b (passed through), \t, \n, \f, \r, \", \', \\
+     * 
+     *  @returns the unescaped string.  does not mutate s.
+     * 
+     *  @throws Exception if an unrecognized escape sequence is encountered.
+     */
     public static final String unescapeString(String s) throws Exception {
-        // initialize return string
-        // iterate through chars in string:
-            // if curr is \:
-                // identify escape sequence by looking ahead 1
-                // if escape sequence recognized, append unescaped value to return string
-                // else throw error
-                // consume both characters
-            // else:
-                // append curr to return string
-
         StringBuffer ret = new StringBuffer(s.length());
         for (int i = 0; i < s.length(); i ++) {
             char curr = s.charAt(i);
-            // String q = "foo\\";
             if (curr == '\\') {
                 if (i < s.length() - 1) {
                     char next = s.charAt(++i);
