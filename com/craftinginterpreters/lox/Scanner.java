@@ -173,8 +173,12 @@ class Scanner {
     }
 
     private void string(char terminator) {
-        while (peek() != terminator && !isAtEnd()) {
+        // tracks if current char is part of an escape sequence.  
+        // used to prevent "\"" from prematurely ending the string scan.
+        boolean isEscapeActive = false;
+        while ((peek() != terminator || isEscapeActive) && !isAtEnd()) {
             if (peek() == '\n') line++;
+            isEscapeActive = !isEscapeActive && peek() == '\\';
             advance();
         }
 
@@ -186,18 +190,25 @@ class Scanner {
         // consume the closing quote mark.
         advance();
 
-        // TODO: unescape escape chars like \n.
-
         // Trim off the enclosing quote marks.
         String value = source.substring(start + 1, current - 1);
+        try {
+            value = StringUtils.unescapeString(value);
+        } catch (Exception e) {
+            Lox.error(line, e.getMessage());
+        }
         addToken(TokenType.STRING, value);
     }
 
+    // looks ahead one character, returning the value seen.
+    // returns EOF if encountered.
     private char peek() {
         if (isAtEnd()) return '\0';
         return source.charAt(current);
     }
 
+    // looks ahead two characters, returning the value seen.
+    // returns EOF if encountered while looking ahead.
     private char peekNext() {
         if (current + 1 >= source.length()) return '\0';
         return source.charAt(current + 1);
@@ -212,14 +223,17 @@ class Scanner {
         return true;
     }
 
+    // advances current character pointer, returning the old value pointed at.
     private char advance() {
         return source.charAt(current++);
     }
 
+    // records a token with no literal value.
     private void addToken(TokenType type) {
         addToken(type, null);
     }
 
+    // records a token with a literal value attached, such as a string.
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
