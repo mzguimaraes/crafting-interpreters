@@ -95,8 +95,17 @@ class Scanner {
 
             case '/':
                 if (match('/')) {
-                    // comments go to end of line
+                    // comments go to end of line.
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    // C-style block comments.
+                    while ((peek() != '*' || peekNext() != '/') && !isAtEnd()) {
+                        if (peek() == '\n') line++;
+                        advance();
+                    }
+                    // consume closing star-slash chars.
+                    advance();
+                    advance();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -174,11 +183,11 @@ class Scanner {
 
     private void string(char terminator) {
         // tracks if current char is part of an escape sequence.  
-        // used to prevent "\"" from prematurely ending the string scan.
+        // used to prevent escaped terminators like "\"" from prematurely ending the string scan.
         boolean isEscapeActive = false;
         while ((peek() != terminator || isEscapeActive) && !isAtEnd()) {
             if (peek() == '\n') line++;
-            isEscapeActive = !isEscapeActive && peek() == '\\';
+            isEscapeActive = !isEscapeActive && peek() == '\\'; // only flip to true if is false and we see a \
             advance();
         }
 
