@@ -1,0 +1,14 @@
+/*
+* 
+* Toy file for testing my Lox interpreter.
+* This file is only as close to "valid Lox" as is useful for my current testing needs--no promises it'll always be fully valid.
+* 
+*/
+
+fun foo(a) {
+    a = "Lox is a useful language?"; // it isn't, but it's useful for learning!
+    print a;
+}
+
+
+

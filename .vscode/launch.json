@@ -12,6 +12,14 @@
       "projectName": "crafting-interpreters_f167b875"
     },
     {
+      "type": "java",
+      "name": "Run testFile.lox",
+      "request": "launch",
+      "mainClass": "com.craftinginterpreters.lox.Lox",
+      "projectName": "crafting-interpreters_f167b875",
+      "args": "com/craftinginterpreters/lox/test/testFile.lox"
+    },
+    {
       "name": "gcc - Build and debug active file",
       "type": "cppdbg",
       "request": "launch",
