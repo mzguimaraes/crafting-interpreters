@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch AstRpnPrinter",
+      "request": "launch",
+      "mainClass": "com.craftinginterpreters.lox.AstRpnPrinter",
+      "projectName": "crafting-interpreters_f167b875"
+    },
+    {
+      "type": "java",
       "name": "Launch Lox",
       "request": "launch",
       "mainClass": "com.craftinginterpreters.lox.Lox",
