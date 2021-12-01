@@ -7,7 +7,7 @@ import java.util.List;
  * Grammar for the recursive descent is defined here: http://craftinginterpreters.com/parsing-expressions.html#ambiguity-and-the-parsing-game
  * 
  * Copied here for convenience:
- * expression     → equality ;
+ * expression     → equality ( "," equality )* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -35,9 +35,16 @@ public class Parser {
         }
     }
 
-    // expression → equality ;
+    // expression → equality ( "," equality )* ;
     private Expr expression() {
-        return equality();
+        Expr expr = equality();
+        while (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
     }
 
     // equality → comparison ( ( "!=" | "==" ) comparison )* ;
