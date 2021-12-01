@@ -31,7 +31,7 @@ public class AstRpnPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitTernaryExpr(Expr.Ternary expr) {
-        return expr.predicate.accept(this) + " " + expr.consequent.accept(this) + " " + expr.alternative.accept(this) + " : ?";
+        return expr.left.accept(this) + " " + expr.center.accept(this) + " " + expr.right.accept(this) + " : ?";
     }
 
     // public static void main(String[] args) {

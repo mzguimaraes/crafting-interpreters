@@ -7,9 +7,9 @@ import java.util.List;
  * Grammar for the recursive descent is defined here: http://craftinginterpreters.com/parsing-expressions.html#ambiguity-and-the-parsing-game
  * 
  * Copied here for convenience:
- * expression     → comma ;
- * comma          → ternary ( "," ternary )* ;
- * ternary        → equality ( "?" ternary ":" ternary )* ;
+ * expression     → conditional ;
+ * conditional    → comma ( "?" expression ":" expression )* ; --right-associative
+ * comma          → equality ( "," equality)* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -37,32 +37,32 @@ public class Parser {
         }
     }
 
-    // expression → comma ;
+    // expression → conditional ;
     private Expr expression() {
-        return comma();
+        return conditional();
     }
 
-    // comma → ternary ( "," ternary )* ;
+    // conditional → comma ( "?" expression ":" expression )* ; --right-associative
+    private Expr conditional() {
+        Expr predicate = comma();
+        while (match(TokenType.QUESTION_MARK)) {
+            Expr consequent = expression();
+            consume(TokenType.COLON, "Expect ':' following ternary operator '?'");
+            Expr alternative = expression();
+            predicate = new Expr.Ternary(predicate, consequent, alternative);
+        }
+        return predicate;
+    }
+
+    // comma → equality ( "," equality )* ;
     private Expr comma() {
-        Expr expr = ternary();
+        Expr expr = equality();
         while (match(TokenType.COMMA)) {
             Token operator = previous();
-            Expr right = ternary();
+            Expr right = equality();
             expr = new Expr.Binary(expr, operator, right);
         }
 
-        return expr;
-    }
-
-    // ternary → equality ( "?" ternary ":" ternary )* ;
-    private Expr ternary() {
-        Expr expr = equality();
-        while (match(TokenType.QUESTION_MARK)) {
-            Expr ifTrue = ternary();
-            consume(TokenType.COLON, "Expect ':' following ternary operator '?'");
-            Expr ifFalse = ternary();
-            expr = new Expr.Ternary(expr, ifTrue, ifFalse);
-        }
         return expr;
     }
 

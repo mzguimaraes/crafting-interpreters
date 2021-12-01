@@ -66,10 +66,10 @@ abstract class Expr {
 		final Expr right;
 	}
 	static class Ternary extends Expr {
-		Ternary(Expr predicate, Expr consequent, Expr alternative) {
-			this.predicate = predicate;
-			this.consequent = consequent;
-			this.alternative = alternative;
+		Ternary(Expr left, Expr center, Expr right) {
+			this.left = left;
+			this.center = center;
+			this.right = right;
 		}
 
 		@Override
@@ -77,9 +77,9 @@ abstract class Expr {
 			return visitor.visitTernaryExpr(this);
 		}
 
-		final Expr predicate;
-		final Expr consequent;
-		final Expr alternative;
+		final Expr left;
+		final Expr center;
+		final Expr right;
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);
