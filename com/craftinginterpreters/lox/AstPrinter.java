@@ -1,5 +1,7 @@
 package com.craftinginterpreters.lox;
 
+import com.craftinginterpreters.lox.Expr.Ternary;
+
 public class AstPrinter implements Expr.Visitor<String> {
     String print(Expr expr) {
         return expr.accept(this);
@@ -39,6 +41,11 @@ public class AstPrinter implements Expr.Visitor<String> {
         builder.append(")");
 
         return builder.toString();
+    }
+
+    @Override
+    public String visitTernaryExpr(Ternary expr) {
+        return parenthesize("ternary", expr.predicate, expr.consequent, expr.alternative);
     }
     
     // public static void main(String[] args) {

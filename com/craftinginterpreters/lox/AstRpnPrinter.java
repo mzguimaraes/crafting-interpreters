@@ -29,6 +29,11 @@ public class AstRpnPrinter implements Expr.Visitor<String> {
         return expr.right.accept(this) + " " + expr.operator.lexeme;
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return expr.predicate.accept(this) + " " + expr.consequent.accept(this) + " " + expr.alternative.accept(this) + " : ?";
+    }
+
     // public static void main(String[] args) {
     //     Expr expression = 
     //     new Expr.Grouping(

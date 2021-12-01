@@ -66,6 +66,8 @@ class Scanner {
             case '+': addToken(TokenType.PLUS); break;
             case ';': addToken(TokenType.SEMICOLON); break;
             case '*': addToken(TokenType.STAR); break;
+            case '?': addToken(TokenType.QUESTION_MARK); break;
+            case ':': addToken(TokenType.COLON); break;
 
             case '.': 
                 // check if this characgter is a leading dot for a number.

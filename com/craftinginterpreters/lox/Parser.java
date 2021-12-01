@@ -7,7 +7,9 @@ import java.util.List;
  * Grammar for the recursive descent is defined here: http://craftinginterpreters.com/parsing-expressions.html#ambiguity-and-the-parsing-game
  * 
  * Copied here for convenience:
- * expression     → equality ( "," equality )* ;
+ * expression     → comma ;
+ * comma          → ternary ( "," ternary )* ;
+ * ternary        → equality ( "?" ternary ":" ternary )* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -35,15 +37,32 @@ public class Parser {
         }
     }
 
-    // expression → equality ( "," equality )* ;
+    // expression → comma ;
     private Expr expression() {
-        Expr expr = equality();
+        return comma();
+    }
+
+    // comma → ternary ( "," ternary )* ;
+    private Expr comma() {
+        Expr expr = ternary();
         while (match(TokenType.COMMA)) {
             Token operator = previous();
-            Expr right = equality();
+            Expr right = ternary();
             expr = new Expr.Binary(expr, operator, right);
         }
 
+        return expr;
+    }
+
+    // ternary → equality ( "?" ternary ":" ternary )* ;
+    private Expr ternary() {
+        Expr expr = equality();
+        while (match(TokenType.QUESTION_MARK)) {
+            Expr ifTrue = ternary();
+            consume(TokenType.COLON, "Expect ':' following ternary operator '?'");
+            Expr ifFalse = ternary();
+            expr = new Expr.Ternary(expr, ifTrue, ifFalse);
+        }
         return expr;
     }
 
