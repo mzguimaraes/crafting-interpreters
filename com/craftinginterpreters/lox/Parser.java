@@ -17,7 +17,10 @@ import java.util.List;
  * unary          → ( "!" | "-" ) unary
  *                | primary ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
- *                | "(" expression ")" ;
+ *                | "(" expression ")"
+ *                | produce_error ;
+ * produce_error  → binary_error ;
+ * binary_error   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
  */
 public class Parser {
     private static class ParseError extends RuntimeException {}
@@ -39,6 +42,7 @@ public class Parser {
 
     // expression → conditional ;
     private Expr expression() {
+        System.out.println("Parsing new expression starting at line " + peek().line + ": '" + peek().lexeme + "'");
         return conditional();
     }
 
@@ -121,7 +125,7 @@ public class Parser {
         return primary();
     }
 
-    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | produce_error ;
     private Expr primary() {
         if (match(TokenType.FALSE)) return new Expr.Literal(false);
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
@@ -135,6 +139,21 @@ public class Parser {
             Expr expr = expression();
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
+        }
+
+        return produceError();
+
+    }
+
+    // produce_error  → binary_error ;
+    // binary_error   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
+    private Expr produceError() {
+        // binary_error
+        if (match(TokenType.BinaryOperators)) {
+            ParseError err = error(previous(), "Expect expression before binary operator.");
+            // consume right-hand operand, parsing and discarding it.
+            expression();
+            throw err;
         }
 
         throw error(peek(), "Expect expression.");

@@ -51,7 +51,7 @@ public class Lox {
         Parser parser = new Parser(tokens);
         Expr expression = parser.parse();
 
-        // stop on syntax errors.
+        // stop on errors.
         if (hadError) return;
 
         System.out.println(new AstPrinter().print(expression));
@@ -70,7 +70,7 @@ public class Lox {
         }
     }
 
-    // report parsing error to user.
+    // report error to user.
     private static void report(int lineNumber, String where, String message) {
         System.err.println("[line " + lineNumber + "] Error" + where + ": " + message);
         hadError = true;
