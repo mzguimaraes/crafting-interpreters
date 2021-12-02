@@ -50,10 +50,18 @@ public class Parser {
     private Expr conditional() {
         Expr predicate = comma();
         while (match(TokenType.QUESTION_MARK)) {
+            Token leftOperator = previous();
             Expr consequent = expression();
             consume(TokenType.COLON, "Expect ':' following ternary operator '?'");
+            Token rightOperator = previous();
             Expr alternative = expression();
-            predicate = new Expr.Ternary(predicate, consequent, alternative);
+            predicate = new Expr.Ternary(
+                predicate, 
+                consequent, 
+                alternative,
+                leftOperator, 
+                rightOperator
+            );
         }
         return predicate;
     }

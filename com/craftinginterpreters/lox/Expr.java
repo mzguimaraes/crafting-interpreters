@@ -66,10 +66,12 @@ abstract class Expr {
 		final Expr right;
 	}
 	static class Ternary extends Expr {
-		Ternary(Expr left, Expr center, Expr right) {
+		Ternary(Expr left, Expr center, Expr right, Token leftOperator, Token rightOperator) {
 			this.left = left;
 			this.center = center;
 			this.right = right;
+			this.leftOperator = leftOperator;
+			this.rightOperator = rightOperator;
 		}
 
 		@Override
@@ -80,6 +82,8 @@ abstract class Expr {
 		final Expr left;
 		final Expr center;
 		final Expr right;
+		final Token leftOperator;
+		final Token rightOperator;
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);
