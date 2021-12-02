@@ -42,7 +42,6 @@ public class Parser {
 
     // expression → conditional ;
     private Expr expression() {
-        System.out.println("Parsing new expression starting at line " + peek().line + ": '" + peek().lexeme + "'");
         return conditional();
     }
 
