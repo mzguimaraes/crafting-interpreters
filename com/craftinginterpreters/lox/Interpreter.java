@@ -11,7 +11,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
     }
 
-    private Object evaluate(Expr expr) {
+    private Object evaluate(Expr expr) throws RuntimeError {
         return expr.accept(this);
     }
 
@@ -65,14 +65,14 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return !isEqual(left, right);
             case EQUAL_EQUAL:
                 return isEqual(left, right);
+            
+            default:
+                throw new RuntimeError(expr.operator, "Unrecognized binary operator '" + expr.operator.lexeme + "'.");
         }
-
-        // Unreachable.
-        return null;
     }
 
     @Override
-    public Object visitGroupingExpr(Expr.Grouping expr) {
+    public Object visitGroupingExpr(Expr.Grouping expr) throws RuntimeError {
         return evaluate(expr.expression);
     }
 
@@ -82,7 +82,7 @@ public class Interpreter implements Expr.Visitor<Object> {
     }
 
     @Override
-    public Object visitUnaryExpr(Expr.Unary expr) {
+    public Object visitUnaryExpr(Expr.Unary expr) throws RuntimeError {
         Object right = evaluate(expr.right);
 
         switch (expr.operator.type) {
@@ -91,14 +91,14 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return -(double)right;
             case BANG:
                 return !isTruthy(right);
+            
+            default:
+                throw new RuntimeError(expr.operator, "Unrecognized unary operator '" + expr.operator.lexeme + "'.");
         }
-
-        // Unreachable.
-        return null;
     }
 
     @Override
-    public Object visitTernaryExpr(Expr.Ternary expr) {
+    public Object visitTernaryExpr(Expr.Ternary expr) throws RuntimeError {
         if (expr.leftOperator.type == TokenType.QUESTION_MARK &&
                 expr.rightOperator.type == TokenType.COLON) {
             // conditional operation.
@@ -108,10 +108,10 @@ public class Interpreter implements Expr.Visitor<Object> {
             } else {
                 return evaluate(expr.right);
             }
+        } else {
+            throw new RuntimeError(expr.leftOperator, "Unrecognized ternary operator pair '" 
+                + expr.leftOperator.lexeme + "' and '" + expr.rightOperator.lexeme + "'.");
         }
-
-        // Unreachable.
-        return null;
     }
 
     private void checkNumberOperand(Token operator, Object operand) throws RuntimeError {
@@ -120,15 +120,6 @@ public class Interpreter implements Expr.Visitor<Object> {
     }
 
     private void checkNumberOperands(Token operator, Object left, Object right) throws RuntimeError {
-        // if (left instanceof Double && right instanceof Double) return;
-
-        // throw new RuntimeError(operator, "Operands must be numbers.");
-        // if (!(left instanceof Double)) {
-        //     throw new RuntimeError(operator, "Operand '" + left.toString() + "' must be a number.");
-        // }
-        // if (!(right instanceof Double)) {
-        //     throw new RuntimeError(operator, "Operand '" + right.toString() + "' must be a number.");
-        // }
         checkNumberOperand(operator, left);
         checkNumberOperand(operator, right);
     }
