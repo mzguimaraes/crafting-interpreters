@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -7,6 +8,11 @@ import java.util.List;
  * Grammar for the recursive descent is defined here: http://craftinginterpreters.com/parsing-expressions.html#ambiguity-and-the-parsing-game
  * 
  * Copied here for convenience:
+ * program        → statement* EOF ;
+ * statement      → exprStmt
+ *                 | printStmt ;
+ * exprStmt       → expression ";" ;
+ * printStmt      → "print" expression ";" ;
  * expression     → conditional ;
  * conditional    → comma ( "?" expression ":" expression )* ; --right-associative
  * comma          → equality ( "," equality)* ;
@@ -32,12 +38,36 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    // program → statement* EOF ;
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+
+        return statements;
+    }
+
+    // statement → exprStmt | printStmt ;
+    private Stmt statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+
+        return expressionStatement();
+    }
+
+    // exprStmt → expression ";" ;
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    // printStmt → "print" expression ";" ;
+    // already matched PRINT token in statement(), no need to consume it here.
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
     }
 
     // expression → conditional ;

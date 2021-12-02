@@ -5,10 +5,14 @@
 * 
 */
 
-fun foo(a) {
-    a = "Lox is a useful language?"; // it isn't, but it's useful for learning!
-    print a;
-}
+// fun foo(a) {
+//     a = "Lox is a useful language?"; // it isn't, but it's useful for learning!
+//     print a;
+// }
+
+print "one";
+print true;
+print 2 + 1;
 
 
 
