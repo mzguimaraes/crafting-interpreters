@@ -13,9 +13,11 @@ import java.util.List;
  *                 | statement ;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
- *                 | printStmt ;
+ *                 | printStmt
+ *                 | block ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
+ * block          → "{" declaration* "}" ;
  * expression     → assignment ;
  * assignment     → IDENTIFIER "=" assignment
  *                 | conditional ; 
@@ -81,11 +83,24 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → exprStmt | printStmt ;
+    // statement → exprStmt | printStmt | block ;
     private Stmt statement() {
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    // block → "{" declaration* "}" ;
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     // exprStmt → expression ";" ;
