@@ -1,5 +1,8 @@
 package com.craftinginterpreters.lox;
 
+import com.craftinginterpreters.lox.Expr.Variable;
+
+/** DEPRECATED - only supports expressions, no statements. */
 public class AstRpnPrinter implements Expr.Visitor<String> {
 
     public String print(Expr expr) {
@@ -32,6 +35,12 @@ public class AstRpnPrinter implements Expr.Visitor<String> {
     @Override
     public String visitTernaryExpr(Expr.Ternary expr) {
         return expr.left.accept(this) + " " + expr.center.accept(this) + " " + expr.right.accept(this) + " : ?";
+    }
+
+    @Override
+    public String visitVariableExpr(Variable expr) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     // public static void main(String[] args) {

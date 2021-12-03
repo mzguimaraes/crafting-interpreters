@@ -5,10 +5,13 @@ import java.util.List;
 
 /**
  * Parses a Lox string by implementing recursive descent.
- * Grammar for the recursive descent is defined here: http://craftinginterpreters.com/parsing-expressions.html#ambiguity-and-the-parsing-game
  * 
- * Copied here for convenience:
- * program        → statement* EOF ;
+ * Full grammar implemented by this parser:
+ * 
+ * program        → declaration* EOF ;
+ * declaration    → varDecl
+ *                 | statement ;
+ * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
  *                 | printStmt ;
  * exprStmt       → expression ";" ;
@@ -24,9 +27,12 @@ import java.util.List;
  *                | primary ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
- *                | produce_error ;
- * produce_error  → binary_error ;
- * binary_error   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
+ *                | IDENTIFIER
+ *                | produceError ;
+ * 
+ * Error productions:
+ * produceError  → binaryError ;
+ * binaryError   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
  */
 public class Parser {
     private static class ParseError extends RuntimeException {}
@@ -38,14 +44,39 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    // program → statement* EOF ;
+    // program → declaration* EOF ;
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
 
         return statements;
+    }
+
+    // declaration → varDecl | statement ;
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+    private Stmt varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     // statement → exprStmt | printStmt ;
@@ -162,7 +193,7 @@ public class Parser {
         return primary();
     }
 
-    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | produce_error ;
+    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | produceError ;
     private Expr primary() {
         if (match(TokenType.FALSE)) return new Expr.Literal(false);
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
@@ -170,6 +201,10 @@ public class Parser {
 
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         if (match(TokenType.LEFT_PAREN)) {
@@ -182,10 +217,10 @@ public class Parser {
 
     }
 
-    // produce_error  → binary_error ;
-    // binary_error   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
+    // produceError  → binaryError ;
+    // binaryError   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
     private Expr produceError() {
-        // binary_error
+        // binaryError
         if (match(TokenType.BinaryOperators)) {
             ParseError err = error(previous(), "Expect expression before binary operator.");
             // consume right-hand operand, parsing and discarding it.

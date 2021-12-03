@@ -1,7 +1,9 @@
 package com.craftinginterpreters.lox;
 
 import com.craftinginterpreters.lox.Expr.Ternary;
+import com.craftinginterpreters.lox.Expr.Variable;
 
+/** DEPRECATED - only supports expressions, no statements. */
 public class AstPrinter implements Expr.Visitor<String> {
     String print(Expr expr) {
         return expr.accept(this);
@@ -46,6 +48,12 @@ public class AstPrinter implements Expr.Visitor<String> {
     @Override
     public String visitTernaryExpr(Ternary expr) {
         return parenthesize("ternary", expr.left, expr.center, expr.right);
+    }
+
+    @Override
+    public String visitVariableExpr(Variable expr) {
+        // TODO Auto-generated method stub
+        return null;
     }
     
     // public static void main(String[] args) {
