@@ -14,26 +14,15 @@
 // print true;
 // print 2 + 1;
 
-== true;
 
-var a = "global a";
-var b = "global b";
-var c = "global c";
+// personally, I expected this to print 3, which it does
+// but I think that's because I thought through how the interpreter would see it
+// I tested this in Node, which considers this an access before initialization error
+// which is really interesting to me.  it implies Node has a two-step variable definition process:
+// declaration, which must be called while interpreting the l-value
+// then assignment, which is called while interpreting the initializer expression
+var a = 1;
 {
-  var a = "outer a";
-  var b = "outer b";
-  {
-    const foo = 'bar';
-    var a = "inner a";
-    print a;
-    print b;
-    print c;
-  }
+  var a = a + 2;
   print a;
-  print b;
-  print c;
 }
-print a;
-print b;
-print c;
-

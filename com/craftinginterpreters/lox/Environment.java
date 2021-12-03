@@ -22,7 +22,7 @@ public class Environment {
         values.put(name, value);
     }
 
-    void define(String name) {
+    void declare(String name) {
         values.put(name, VarState.UNINITIALIZED);
     }
 

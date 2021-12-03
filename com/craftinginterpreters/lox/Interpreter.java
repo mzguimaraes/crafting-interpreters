@@ -176,7 +176,7 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         if (stmt.initializer == null) {
-            environment.define(stmt.name.lexeme);
+            environment.declare(stmt.name.lexeme);
         } else {
             environment.define(stmt.name.lexeme, evaluate(stmt.initializer));
         }
