@@ -201,4 +201,41 @@ public class Interpreter implements Expr.Visitor<Object>,
         executeBlock(stmt.statements, new Environment(environment));
         return null;
     }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+            else return evaluate(expr.right);
+        } else if (expr.operator.type == TokenType.AND) {
+            if (!isTruthy(left)) return left;
+            else return evaluate(expr.right);
+        } else {
+            throw new RuntimeError(expr.operator, "Invalid logical operator.");
+        }
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        Object condition = evaluate(stmt.condition);
+        while (isTruthy(condition)) {
+            execute(stmt.body);
+            condition = evaluate(stmt.condition);
+        }
+
+        return null;
+    }
 }

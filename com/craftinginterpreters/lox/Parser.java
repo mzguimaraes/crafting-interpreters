@@ -2,6 +2,7 @@ package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * Parses a Lox string by implementing recursive descent.
@@ -13,14 +14,24 @@ import java.util.List;
  *                 | statement ;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
+ *                 | forStmt
+ *                 | ifStmt
  *                 | printStmt
+ *                 | whileStmt
  *                 | block ;
+ * forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+ *                   expression? ";"
+ *                   expression? ")" statement ;
+ * whileStmt      → "while" "(" expression ")" statement ;
+ * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
  * block          → "{" declaration* "}" ;
  * expression     → assignment ;
  * assignment     → IDENTIFIER "=" assignment
- *                 | conditional ; 
+ *                 | logic_or ;
+ * logic_or       → logic_and ( "or" logic_and )* ;
+ * logic_and      → conditional ( "and" conditional)* ;
  * conditional    → comma ( "?" expression ":" expression )* ; --right-associative
  * comma          → equality ( "," equality)* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -72,6 +83,7 @@ public class Parser {
 
     // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
     private Stmt varDeclaration() {
+        // var token already consumed
         Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
 
         Expr initializer = null;
@@ -83,12 +95,89 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → exprStmt | printStmt | block ;
+    // statement → exprStmt | ifStmt | printStmt | whileStmt | block ;
     private Stmt statement() {
+        if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    // forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+    //                   expression? ";"
+    //                   expression? ")" statement ;
+    private Stmt forStatement() {
+        // syntactic sugar over while statements.
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+        Stmt initializer;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after 'for' loop condition.");
+
+        Expr increment = null;
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+        } 
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after 'for' loop clauses.");
+
+        Stmt body = statement();
+
+        if (increment != null) {
+            body = new Stmt.Block(
+                Arrays.asList(
+                    body,
+                    new Stmt.Expression(increment)
+                )
+            );
+        }
+
+        if (condition == null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
+    }
+
+    // whileStmt → "while" "(" expression ")" statement ;
+    private Stmt whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after 'while' condition expression.");
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
+    }
+
+    // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
+    private Stmt ifStatement() {
+        // TODO: add else if support
+        consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(TokenType.ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     // block → "{" declaration* "}" ;
@@ -123,9 +212,9 @@ public class Parser {
         return assignment();
     }
 
-    // assignment → IDENTIFIER "=" assignment | conditional ; 
+    // assignment → IDENTIFIER "=" assignment | logic_or ; 
     private Expr assignment() {
-        Expr expr = conditional();
+        Expr expr = or();
 
         if (match(TokenType.EQUAL)) {
             Token equals = previous();
@@ -137,6 +226,31 @@ public class Parser {
             }
 
             error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    // logic_or → logic_and ( "or" logic_and )* ;
+    private Expr or() {
+        Expr expr = and();
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    // logic_and → conditional ( "and" conditional)* ;
+    private Expr and() {
+        Expr expr = conditional();
+
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expr right = conditional();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;

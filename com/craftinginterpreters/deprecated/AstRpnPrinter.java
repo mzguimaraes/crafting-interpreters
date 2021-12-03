@@ -1,6 +1,8 @@
-package com.craftinginterpreters.lox;
+package com.craftinginterpreters.deprecated;
 
+import com.craftinginterpreters.lox.Expr;
 import com.craftinginterpreters.lox.Expr.Assign;
+import com.craftinginterpreters.lox.Expr.Logical;
 import com.craftinginterpreters.lox.Expr.Variable;
 
 /** DEPRECATED - only supports expressions, no statements. */
@@ -46,6 +48,12 @@ public class AstRpnPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitAssignExpr(Assign expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String visitLogicalExpr(Logical expr) {
         // TODO Auto-generated method stub
         return null;
     }
