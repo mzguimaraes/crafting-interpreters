@@ -16,7 +16,9 @@ import java.util.List;
  *                 | printStmt ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
- * expression     → conditional ;
+ * expression     → assignment ;
+ * assignment     → IDENTIFIER "=" assignment
+ *                 | conditional ; 
  * conditional    → comma ( "?" expression ":" expression )* ; --right-associative
  * comma          → equality ( "," equality)* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -101,9 +103,28 @@ public class Parser {
         return new Stmt.Print(value);
     }
 
-    // expression → conditional ;
+    // expression → assignment ;
     private Expr expression() {
-        return conditional();
+        return assignment();
+    }
+
+    // assignment → IDENTIFIER "=" assignment | conditional ; 
+    private Expr assignment() {
+        Expr expr = conditional();
+
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     // conditional → comma ( "?" expression ":" expression )* ; --right-associative
