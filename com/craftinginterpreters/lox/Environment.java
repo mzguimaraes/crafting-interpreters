@@ -6,6 +6,9 @@ import java.util.Map;
 public class Environment {
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();    
+    private enum VarState {
+        UNINITIALIZED
+    }
 
     Environment() {
         enclosing = null;
@@ -19,9 +22,17 @@ public class Environment {
         values.put(name, value);
     }
 
+    void define(String name) {
+        values.put(name, VarState.UNINITIALIZED);
+    }
+
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
-            return values.get(name.lexeme);
+            if (values.get(name.lexeme) != VarState.UNINITIALIZED) {
+                return values.get(name.lexeme);
+            } else {
+                throw new RuntimeError(name, "Illegal variable access before initialization.");
+            }
         }
 
         if (enclosing != null) return enclosing.get(name);
