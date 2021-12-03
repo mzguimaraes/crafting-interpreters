@@ -51,4 +51,27 @@ public class StringUtils {
 
         return ret.toString();
     }    
+
+    /**
+     * Transforms an object into a Lox-appropriate string representation.
+     * Generally returns object.toString().
+     * If object is null, returns "nil"
+     * If object is a Double representing an integer value, the fractional part is removed.
+     * @param object Object to stringify.
+     * @return String representation of object.
+     */
+    public static final String stringify(Object object) {
+        if (object == null) return "nil";
+
+        if (object instanceof Double) {
+            String text = object.toString();
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2);
+            }
+
+            return text;
+        }
+
+        return object.toString();
+    }
 }

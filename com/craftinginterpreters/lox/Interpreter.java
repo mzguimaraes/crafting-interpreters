@@ -17,7 +17,7 @@ public class Interpreter implements Expr.Visitor<Object>,
         }
     }
 
-    private Object evaluate(Expr expr) throws RuntimeError {
+    public Object evaluate(Expr expr) throws RuntimeError {
         return expr.accept(this);
     }
 
@@ -64,8 +64,8 @@ public class Interpreter implements Expr.Visitor<Object>,
 
                 // if either operand is a string, cast the other to a string before concatenation.
                 if (left instanceof String || right instanceof String) {
-                    if (!(left instanceof String)) left = stringify(left);
-                    if (!(right instanceof String)) right = stringify(right);
+                    if (!(left instanceof String)) left = StringUtils.stringify(left);
+                    if (!(right instanceof String)) right = StringUtils.stringify(right);
                     return (String)left + (String)right;
                 }
 
@@ -160,21 +160,6 @@ public class Interpreter implements Expr.Visitor<Object>,
         return a.equals(b);
     }
 
-    private String stringify(Object object) {
-        if (object == null) return "nil";
-
-        if (object instanceof Double) {
-            String text = object.toString();
-            if (text.endsWith(".0")) {
-                text = text.substring(0, text.length() - 2);
-            }
-
-            return text;
-        }
-
-        return object.toString();
-    }
-
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
@@ -184,7 +169,7 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
+        System.out.println(StringUtils.stringify(value));
         return null;
     }
 

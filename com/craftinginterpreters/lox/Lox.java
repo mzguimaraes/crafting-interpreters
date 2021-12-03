@@ -43,7 +43,8 @@ public class Lox {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
-            run(line);
+            // run(line);
+            runInteractive(line);
             hadError = false;
         }
     }
@@ -60,6 +61,25 @@ public class Lox {
         if (hadError) return;
 
         interpreter.interpret(statements);
+    }
+
+    private static void runInteractive(String source) {
+        Scanner scanner = new Scanner(source);
+        List<Token> tokens = scanner.scanTokensInteractive();
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> statements = parser.parse();
+
+        // stop on errors.
+        if (hadError) return;
+
+        if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
+            Expr expr = ((Stmt.Expression)statements.get(0)).expression;
+            Object value = interpreter.evaluate(expr);
+            System.out.println(StringUtils.stringify(value));
+        } else {
+            interpreter.interpret(statements);
+        }
     }
 
     // General-purpose error handling function.
