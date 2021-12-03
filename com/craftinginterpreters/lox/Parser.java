@@ -15,7 +15,7 @@ import java.util.Arrays;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
  *                 | forStmt
- *                 | ifStmt
+ *                 | ifElseStmt
  *                 | printStmt
  *                 | whileStmt
  *                 | block ;
@@ -23,7 +23,8 @@ import java.util.Arrays;
  *                   expression? ";"
  *                   expression? ")" statement ;
  * whileStmt      → "while" "(" expression ")" statement ;
- * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+ * ifElseStmt     → ifStmt ( "else" ifStmt )* ( "else" statement )? ;
+ * ifStmt         → "if" "(" expression ")" statement ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
  * block          → "{" declaration* "}" ;
@@ -95,9 +96,9 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → exprStmt | ifStmt | printStmt | whileStmt | block ;
+    // statement → exprStmt | ifElseStmt | printStmt | forStmt | whileStmt | block ;
     private Stmt statement() {
-        if (match(TokenType.IF)) return ifStatement();
+        if (match(TokenType.IF)) return ifElseStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.WHILE)) return whileStatement();
@@ -164,20 +165,35 @@ public class Parser {
         return new Stmt.While(condition, body);
     }
 
-    // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
-    private Stmt ifStatement() {
-        // TODO: add else if support
+    // ifElseStmt → ifStmt ( "else" ifStmt )* ("else" statement)? ;
+    private Stmt ifElseStatement() {
+        List<Stmt.If> ifBranches = new ArrayList<>();
+
+        ifBranches.add(ifStatement());
+
+        Stmt elseBranch = null;
+
+        while (match(TokenType.ELSE)) {
+            if (match(TokenType.IF)) {
+                ifBranches.add(ifStatement());
+            } else if (elseBranch == null) {
+                elseBranch = statement();
+            } else {
+                throw error(previous(), "Else branch already defined.");
+            }
+        }
+
+        return new Stmt.IfElse(ifBranches, elseBranch);
+    }
+
+    // ifStmt → "if" "(" expression ")" statement ;
+    private Stmt.If ifStatement() {
+        // "if" token was consumed by statement()
         consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
-
-        Stmt thenBranch = statement();
-        Stmt elseBranch = null;
-        if (match(TokenType.ELSE)) {
-            elseBranch = statement();
-        }
-
-        return new Stmt.If(condition, thenBranch, elseBranch);
+        Stmt body = statement();
+        return new Stmt.If(condition, body);
     }
 
     // block → "{" declaration* "}" ;

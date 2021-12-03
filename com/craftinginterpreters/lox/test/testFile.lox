@@ -27,18 +27,30 @@
 //   print a;
 // }
 
-var count = 3;
-while (count > 0) {
-    print count;
-    count = count - 1;
-}
-print "Boom!";
+// var count = 3;
+// while (count > 0) {
+    // print count;
+    // count = count - 1;
+// }
+// print "Boom!";
 
-var a = 0;
-var temp;
+// var a = 0;
+// var temp;
 
-for (var b = 1; a < 10000; b = temp + b) {
-    print a;
-    temp = a;
-    a = b;
-}
+// for (var b = 1; a < 10000; b = temp + b) {
+    // print a;
+    // temp = a;
+    // a = b;
+// }
+
+var a = 5;
+
+if (a == 1) {
+    print "One";
+} else if (a == 2) {
+    print "Two";
+} else if (a == 3) {
+    print "Three";
+} else print "Something else.";
+
+if (a == 5) print "Check check.";

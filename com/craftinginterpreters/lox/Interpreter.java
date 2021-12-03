@@ -69,7 +69,7 @@ public class Interpreter implements Expr.Visitor<Object>,
                     return (String)left + (String)right;
                 }
 
-                throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
+                throw new RuntimeError(expr.operator, "Operands must be two numbers or one string and one string-castable object.");
 
             case GREATER:
                 checkNumberOperands(expr.operator, left, right);
@@ -204,12 +204,30 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitIfStmt(Stmt.If stmt) {
-        if (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.thenBranch);
-        } else if (stmt.elseBranch != null) {
-            execute(stmt.elseBranch);
+        // TODO: I bet after implementing functions I'll know some techniques that may allow me to eliminate Stmt.If as a class.
+        // Do nothing--If statements will be executed by visitIfElseStmt(). 
+        // This function should never be called.
+        throw new RuntimeError(
+            new Token(TokenType.IF, "if", null, 0), 
+            "Attempted to interpret bare 'if' statement.\n" +  
+            "This should never happen.  If  you see this error, please let the language maintainers know."
+        );
+    }
+
+    @Override
+    public Void visitIfElseStmt(Stmt.IfElse stmt) {
+        boolean hasExecutedBranch = false;
+        for (Stmt.If statement : stmt.ifBranches) {
+            if (isTruthy(evaluate(statement.condition))) {
+                execute(statement.body);
+                hasExecutedBranch = true;
+                break;
+            }
         }
 
+        if (!hasExecutedBranch) {
+            execute(stmt.elseBranch);
+        }
         return null;
     }
 
