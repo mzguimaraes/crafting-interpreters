@@ -271,6 +271,6 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitLoopKeywordStmt(Stmt.LoopKeyword stmt) {
-        throw new LoopInterrupt(stmt.token, "Loop interrupt");
+        throw new LoopInterrupt(stmt.token, "Loop interrupt not semantically valid.");
     }
 }

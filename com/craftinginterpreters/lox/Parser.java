@@ -46,10 +46,10 @@ import java.util.Arrays;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
- *                | produceError ;
+ *                | primaryError ;
  * 
  * Error productions:
- * produceError  → binaryError ;
+ * primaryError  → binaryError ;
  * binaryError   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
  */
 public class Parser {
@@ -68,7 +68,10 @@ public class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(declaration());
+            Stmt stmt = declaration();
+            if (stmt != null) {
+                statements.add(stmt);
+            }
         }
 
         return statements;
@@ -172,35 +175,6 @@ public class Parser {
         loopsInside --;
         return new Stmt.While(condition, body);
     }
-
-    // loopBody → exprStmt | forStmt | ifElseStmt | printStmt | whileStmt | loopKywd | loopBlock ;
-    // private Stmt loopBody() {
-    //     if (match(TokenType.IF)) return ifElseStatement();
-    //     if (match(TokenType.PRINT)) return printStatement();
-    //     if (match(TokenType.FOR)) return forStatement();
-    //     if (match(TokenType.WHILE)) return whileStatement();
-    //     if (match(TokenType.BREAK, TokenType.CONTINUE)) return loopKeyword();
-    //     if (match(TokenType.LEFT_BRACE)) return loopBlock();
-
-    //     return expressionStatement();
-    // }
-
-    // loopBlock      → "{" ( declaration | loopKywd )* "}" ;
-    // private Stmt.Block loopBlock() {
-
-    //     List<Stmt> statements = new ArrayList<>();
-
-    //     while (!isAtEnd() && !check(TokenType.RIGHT_BRACE)) {
-
-    //         if (match(TokenType.BREAK, TokenType.CONTINUE)) {
-    //             statements.add(loopKeyword());
-    //         } else {
-    //             statements.add(declaration());
-    //         }
-    //     }
-
-    //     return new Stmt.Block(statements);
-    // }
 
     // loopKywd → ( "break" | "continue" ) ";" ;
     private Stmt.LoopKeyword loopKeyword() {
@@ -410,7 +384,7 @@ public class Parser {
         return primary();
     }
 
-    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | produceError ;
+    // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | primaryError ;
     private Expr primary() {
         if (match(TokenType.FALSE)) return new Expr.Literal(false);
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
@@ -430,13 +404,13 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
 
-        return produceError();
+        return primaryError();
 
     }
 
-    // produceError  → binaryError ;
+    // primaryError  → binaryError ;
     // binaryError   → ( "!=" | "==" | ">" | ">=" | "<" | "<=" | "," | "-" | "+" | "/" | "*" ) expression ;
-    private Expr produceError() {
+    private Expr primaryError() {
         // binaryError
         if (match(TokenType.BinaryOperators)) {
             ParseError err = error(previous(), "Expect expression before binary operator.");

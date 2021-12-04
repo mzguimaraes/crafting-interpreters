@@ -34,4 +34,10 @@ enum TokenType {
       TokenType.SLASH, TokenType.STAR
    };
 
+   /** List of token types that are parsed as loop keywords. */
+   public static final TokenType[] loopKeywords = {
+      TokenType.BREAK, 
+      TokenType.CONTINUE
+   };
+
 }
