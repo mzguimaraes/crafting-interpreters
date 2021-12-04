@@ -44,13 +44,23 @@
 // }
 
 var a = 5;
+// 
+// if (a == 1) {
+//     print "One";
+// } else if (a == 2) {
+//     print "Two";
+// } else if (a == 3) {
+//     print "Three";
+// } else print "Something else.";
+// 
+// if (a == 5) print "Check check.";
 
-if (a == 1) {
-    print "One";
-} else if (a == 2) {
-    print "Two";
-} else if (a == 3) {
-    print "Three";
-} else print "Something else.";
+continue;
 
-if (a == 5) print "Check check.";
+while (a > -10) {
+    if (a < 0) {
+        break;
+    }
+    a = a - 1;
+    print a;
+}

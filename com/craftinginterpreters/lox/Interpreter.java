@@ -225,7 +225,7 @@ public class Interpreter implements Expr.Visitor<Object>,
             }
         }
 
-        if (!hasExecutedBranch) {
+        if (!hasExecutedBranch && stmt.elseBranch != null) {
             execute(stmt.elseBranch);
         }
         return null;
@@ -253,6 +253,12 @@ public class Interpreter implements Expr.Visitor<Object>,
             execute(stmt.body);
             condition = evaluate(stmt.condition);
         }
+
+        return null;
+    }
+
+    @Override
+    public Void visitLoopKeywordStmt(Stmt.LoopKeyword stmt) {
 
         return null;
     }

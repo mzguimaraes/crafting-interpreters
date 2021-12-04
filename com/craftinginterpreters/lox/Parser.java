@@ -18,11 +18,13 @@ import java.util.Arrays;
  *                 | ifElseStmt
  *                 | printStmt
  *                 | whileStmt
+ *                 | loopKywd
  *                 | block ;
  * forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
  *                   expression? ";"
  *                   expression? ")" statement ;
  * whileStmt      → "while" "(" expression ")" statement ;
+ * loopKywd       → ( "break" | "continue" ) ";" ;
  * ifElseStmt     → ifStmt ( "else" ifStmt )* ( "else" statement )? ;
  * ifStmt         → "if" "(" expression ")" statement ;
  * exprStmt       → expression ";" ;
@@ -55,6 +57,8 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+
+    private int loopsInside = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -96,12 +100,13 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → exprStmt | ifElseStmt | printStmt | forStmt | whileStmt | block ;
+    // statement → exprStmt | ifElseStmt | printStmt | loopKywd | block ;
     private Stmt statement() {
         if (match(TokenType.IF)) return ifElseStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.WHILE)) return whileStatement();
+        if (match(TokenType.BREAK, TokenType.CONTINUE)) return loopKeyword();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
@@ -112,6 +117,7 @@ public class Parser {
     //                   expression? ")" statement ;
     private Stmt forStatement() {
         // syntactic sugar over while statements.
+        loopsInside ++;
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
         Stmt initializer;
         if (match(TokenType.SEMICOLON)) {
@@ -152,17 +158,62 @@ public class Parser {
             body = new Stmt.Block(Arrays.asList(initializer, body));
         }
 
+        loopsInside --;
         return body;
     }
 
     // whileStmt → "while" "(" expression ")" statement ;
     private Stmt whileStatement() {
+        loopsInside ++;
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after 'while' condition expression.");
         Stmt body = statement();
-
+        loopsInside --;
         return new Stmt.While(condition, body);
+    }
+
+    // loopBody → exprStmt | forStmt | ifElseStmt | printStmt | whileStmt | loopKywd | loopBlock ;
+    // private Stmt loopBody() {
+    //     if (match(TokenType.IF)) return ifElseStatement();
+    //     if (match(TokenType.PRINT)) return printStatement();
+    //     if (match(TokenType.FOR)) return forStatement();
+    //     if (match(TokenType.WHILE)) return whileStatement();
+    //     if (match(TokenType.BREAK, TokenType.CONTINUE)) return loopKeyword();
+    //     if (match(TokenType.LEFT_BRACE)) return loopBlock();
+
+    //     return expressionStatement();
+    // }
+
+    // loopBlock      → "{" ( declaration | loopKywd )* "}" ;
+    // private Stmt.Block loopBlock() {
+
+    //     List<Stmt> statements = new ArrayList<>();
+
+    //     while (!isAtEnd() && !check(TokenType.RIGHT_BRACE)) {
+
+    //         if (match(TokenType.BREAK, TokenType.CONTINUE)) {
+    //             statements.add(loopKeyword());
+    //         } else {
+    //             statements.add(declaration());
+    //         }
+    //     }
+
+    //     return new Stmt.Block(statements);
+    // }
+
+    // loopKywd → ( "break" | "continue" ) ";" ;
+    private Stmt.LoopKeyword loopKeyword() {
+        // already matched on { in loopBody() or loopBlock().
+
+        // throw syntax error if we're not in a loop.
+        if (loopsInside <= 0) {
+            throw error(previous(), "Loop keyword not allowed outside loop.");
+        }
+
+        Token token = previous();
+        consume(TokenType.SEMICOLON, "Expect ';' after '" + token.lexeme + "' statement.");
+        return new Stmt.LoopKeyword(token);
     }
 
     // ifElseStmt → ifStmt ( "else" ifStmt )* ("else" statement)? ;
@@ -408,7 +459,7 @@ public class Parser {
         return false;
     }
 
-    private Token consume(TokenType type, String message) {
+    private Token consume(TokenType type, String message) throws ParseError {
         if (check(type)) return advance();
         throw error(peek(), message);
     }

@@ -32,7 +32,8 @@ public class GenerateAst {
             "If         : Expr condition, Stmt body",
             "Print      : Expr expression",
             "Var        : Token name, Expr initializer",
-            "While      : Expr condition, Stmt body"
+            "While      : Expr condition, Stmt body", 
+            "LoopKeyword: Token token"
         ));
     }
 

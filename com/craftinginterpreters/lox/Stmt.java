@@ -12,6 +12,7 @@ public abstract class Stmt {
 		R visitPrintStmt(Print stmt);
 		R visitVarStmt(Var stmt);
 		R visitWhileStmt(While stmt);
+		R visitLoopKeywordStmt(LoopKeyword stmt);
 	}
 	public static class Block extends Stmt {
 		Block(List<Stmt> statements) {
@@ -104,6 +105,18 @@ public abstract class Stmt {
 
 		public final Expr condition;
 		public final Stmt body;
+	}
+	public static class LoopKeyword extends Stmt {
+		LoopKeyword(Token token) {
+			this.token = token;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitLoopKeywordStmt(this);
+		}
+
+		public final Token token;
 	}
 
 	public abstract <R> R accept(Visitor<R> visitor);
