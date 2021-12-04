@@ -250,8 +250,20 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Void visitWhileStmt(Stmt.While stmt) {
         Object condition = evaluate(stmt.condition);
         while (isTruthy(condition)) {
-            execute(stmt.body);
-            condition = evaluate(stmt.condition);
+            try {
+                execute(stmt.body);
+            } catch (LoopInterrupt interrupt) {
+                if (interrupt.token.type == TokenType.CONTINUE) {
+                    continue;
+                } else if (interrupt.token.type == TokenType.BREAK) {
+                    break;
+                } else {
+                    throw new RuntimeError(interrupt.token, "Unimplmented loop interrupt.");
+                }
+            } finally {
+                // TODO: we're re-evaluating condition on break--unoptimal
+                condition = evaluate(stmt.condition);
+            }
         }
 
         return null;
@@ -259,7 +271,6 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitLoopKeywordStmt(Stmt.LoopKeyword stmt) {
-
-        return null;
+        throw new LoopInterrupt(stmt.token, "Loop interrupt");
     }
 }

@@ -55,12 +55,10 @@ var a = 5;
 // 
 // if (a == 5) print "Check check.";
 
-continue;
-
 while (a > -10) {
-    if (a < 0) {
-        break;
-    }
     a = a - 1;
+    if (a == 3) {
+        continue;
+    }
     print a;
 }
