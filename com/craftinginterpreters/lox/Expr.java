@@ -13,6 +13,7 @@ public abstract class Expr {
 		R visitUnaryExpr(Unary expr);
 		R visitTernaryExpr(Ternary expr);
 		R visitVariableExpr(Variable expr);
+		R visitIncrementExpr(Increment expr);
 	}
 	public static class Assign extends Expr {
 		Assign(Token name, Expr value) {
@@ -129,6 +130,22 @@ public abstract class Expr {
 		}
 
 		public final Token name;
+	}
+	public static class Increment extends Expr {
+		Increment(Expr.Variable identifier, Token operator, IncrementType type) {
+			this.identifier = identifier;
+			this.operator = operator;
+			this.type = type;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitIncrementExpr(this);
+		}
+
+		public final Expr.Variable identifier;
+		public final Token operator;
+		public final IncrementType type;
 	}
 
 	public abstract <R> R accept(Visitor<R> visitor);

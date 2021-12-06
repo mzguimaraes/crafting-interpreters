@@ -21,7 +21,8 @@ public class GenerateAst {
             "Logical    : Expr left, Token operator, Expr right",
             "Unary      : Token operator, Expr right",
             "Ternary    : Expr left, Expr center, Expr right, Token leftOperator, Token rightOperator",
-            "Variable   : Token name"
+            "Variable   : Token name",
+            "Increment  : Expr.Variable identifier, Token operator, IncrementType type"
         ));
 
         // define statement AST subclasses.

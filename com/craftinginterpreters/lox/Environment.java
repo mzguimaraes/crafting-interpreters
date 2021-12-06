@@ -26,7 +26,7 @@ public class Environment {
         values.put(name, VarState.UNINITIALIZED);
     }
 
-    Object get(Token name) {
+    Object get(Token name) throws RuntimeError {
         if (values.containsKey(name.lexeme)) {
             if (values.get(name.lexeme) != VarState.UNINITIALIZED) {
                 return values.get(name.lexeme);
@@ -40,7 +40,7 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assign(Token name, Object value) {
+    void assign(Token name, Object value) throws RuntimeError {
         if (values.containsKey(name.lexeme)) {
             values.put(name.lexeme, value);
             return;

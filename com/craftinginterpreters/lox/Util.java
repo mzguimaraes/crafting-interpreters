@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StringUtils {
+public class Util {
     private static final Map<Character, String> escapeSequences;
 
     static {
@@ -73,5 +73,13 @@ public class StringUtils {
         }
 
         return object.toString();
+    }
+
+    /**
+     * Tests if the provided Double represents an integer value.
+     * Useful for interpreting variable accesses where you must differentiate between integer and decimal values.
+     */
+    public static final boolean isInteger(Double n) {
+        return (Math.rint(n) == n) && Double.isFinite(n);
     }
 }

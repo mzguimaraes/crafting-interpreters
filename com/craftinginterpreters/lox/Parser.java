@@ -42,7 +42,10 @@ import java.util.Arrays;
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  * unary          → ( "!" | "-" ) unary
- *                | primary ;
+ *                 | incDec ;
+ * incDec         → postIncDec | preIncDec ;
+ * postIncDec     → primary ( "++" | "--" )? ;
+ * preIncDec      → ( "++" | "--" ) IDENTIFIER ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
@@ -373,7 +376,7 @@ public class Parser {
         return expr;
     }
 
-    // unary → ( "!" | "-" ) unary | primary ;
+    // unary → ( "!" | "-" ) unary | incDec ;
     private Expr unary() {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             Token operator = previous();
@@ -381,7 +384,66 @@ public class Parser {
             return new Expr.Unary(operator, right);
         } 
 
-        return primary();
+        return increment();
+    }
+
+    // incDec         → postIncDec | preIncDec ;
+    // postIncDec     → primary ( "++" | "--" )? ;
+    // preIncDec      → ( "++" | "--" ) IDENTIFIER ;
+    private Expr increment() throws ParseError {
+        // TODO: this should be 3 functions.
+        Expr identifier = null;
+        Token operator = null;
+        IncrementType type = null;
+        if (!match(TokenType.incrementOperators)) {
+            // primary or post-inc
+            // valid: variable expr followed by an inc/dec operator ; non-variable primary not followed by inc/dec operator ; variable expr not followed by an inc/dec operator ;
+            // invalid: non-variable primary followed by an inc/dec operator ; 
+            identifier = primary();
+            if (!(identifier instanceof Expr.Variable)) {
+                if (match(TokenType.incrementOperators)) {
+                    throw error(previous(), "Expect variable identifier before post-increment operator.");
+                } else {
+                    return identifier;
+                }
+            } else {
+                if (match(TokenType.incrementOperators)) {
+                    operator = previous();
+                    switch (operator.type) {
+                        case PLUS_PLUS:
+                            type = IncrementType.POST_INCREMENT;
+                            break;
+                        case MINUS_MINUS:
+                            type = IncrementType.POST_DECREMENT;
+                            break;
+                        default:
+                            throw error(operator, "Unimplemented increment/decrement operator");
+                    }
+                } else {
+                    return identifier;
+                }
+            }
+        } else {
+            // pre-inc
+            operator = previous();
+            identifier = primary();
+            if (!(identifier instanceof Expr.Variable)) {
+                throw error(previous(), "Expect variable identifier after pre-increment operator.");
+            }
+
+            switch (operator.type) {
+                case PLUS_PLUS:
+                    type = IncrementType.PRE_INCREMENT;
+                    break;
+                case MINUS_MINUS:
+                    type = IncrementType.PRE_DECREMENT;
+                    break;
+                default:
+                    throw error(operator, "Unimplemented increment/decrement operator");
+            }
+
+        }
+        return new Expr.Increment(((Expr.Variable)identifier), operator, type);
     }
 
     // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | primaryError ;

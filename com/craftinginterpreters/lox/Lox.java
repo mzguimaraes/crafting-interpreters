@@ -74,9 +74,14 @@ public class Lox {
         if (hadError) return;
 
         if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
-            Expr expr = ((Stmt.Expression)statements.get(0)).expression;
-            Object value = interpreter.evaluate(expr);
-            System.out.println(StringUtils.stringify(value));
+            try {
+                Expr expr = ((Stmt.Expression)statements.get(0)).expression;
+                Object value = interpreter.evaluate(expr);
+                System.out.println(Util.stringify(value));
+            } catch (RuntimeError err) {
+                // TODO: this if block needs to move to Interpreter.interpret()
+                // error(expr, message);
+            }
         } else {
             interpreter.interpret(statements);
         }

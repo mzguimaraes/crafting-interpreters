@@ -2,7 +2,7 @@ package com.craftinginterpreters.lox;
 
 enum TokenType {
    // Single-char tokens. 
-   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, BREAK, CONTINUE,
+   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, SEMICOLON, SLASH, STAR, BREAK, CONTINUE,
 
    // Ternary components (treated as single-char tokens).
    QUESTION_MARK, COLON,
@@ -12,6 +12,8 @@ enum TokenType {
    EQUAL, EQUAL_EQUAL, 
    GREATER, GREATER_EQUAL,
    LESS, LESS_EQUAL,
+   MINUS, MINUS_MINUS,
+   PLUS, PLUS_PLUS,
 
    // Literals.
    IDENTIFIER, STRING, NUMBER,
@@ -40,4 +42,8 @@ enum TokenType {
       TokenType.CONTINUE
    };
 
+   public static final TokenType[] incrementOperators = {
+      TokenType.PLUS_PLUS,
+      TokenType.MINUS_MINUS
+   };
 }

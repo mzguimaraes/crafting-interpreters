@@ -2,6 +2,7 @@ package com.craftinginterpreters.deprecated;
 
 import com.craftinginterpreters.lox.Expr;
 import com.craftinginterpreters.lox.Expr.Assign;
+import com.craftinginterpreters.lox.Expr.Increment;
 import com.craftinginterpreters.lox.Expr.Logical;
 import com.craftinginterpreters.lox.Expr.Variable;
 
@@ -54,6 +55,12 @@ public class AstRpnPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitLogicalExpr(Logical expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String visitIncrementExpr(Increment expr) {
         // TODO Auto-generated method stub
         return null;
     }

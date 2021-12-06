@@ -64,8 +64,8 @@ public class Interpreter implements Expr.Visitor<Object>,
 
                 // if either operand is a string, cast the other to a string before concatenation.
                 if (left instanceof String || right instanceof String) {
-                    if (!(left instanceof String)) left = StringUtils.stringify(left);
-                    if (!(right instanceof String)) right = StringUtils.stringify(right);
+                    if (!(left instanceof String))   left = Util.stringify(left);
+                    if (!(right instanceof String)) right = Util.stringify(right);
                     return (String)left + (String)right;
                 }
 
@@ -169,7 +169,7 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println(StringUtils.stringify(value));
+        System.out.println(Util.stringify(value));
         return null;
     }
 
@@ -273,4 +273,33 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Void visitLoopKeywordStmt(Stmt.LoopKeyword stmt) {
         throw new LoopInterrupt(stmt.token, "Loop interrupt not semantically valid.");
     }
+
+    @Override
+    public Object visitIncrementExpr(Expr.Increment expr) throws RuntimeError {
+        Object value = evaluate(expr.identifier);
+
+        if (!(value instanceof Double) || !Util.isInteger((double)value)) {
+            throw new RuntimeError(expr.identifier.name, "Cannot apply increment operation to non-integer value.");
+        }
+
+        Double d = (double)value;
+
+        switch (expr.type) {
+            case POST_DECREMENT:
+                environment.assign(expr.identifier.name, d - 1);
+                return d;
+            case POST_INCREMENT:
+                environment.assign(expr.identifier.name, d + 1);
+                return d;
+            case PRE_DECREMENT:
+                environment.assign(expr.identifier.name, d - 1);
+                return d - 1;
+            case PRE_INCREMENT:
+                environment.assign(expr.identifier.name, d + 1);
+                return d + 1;
+            default:
+                throw new RuntimeError(expr.operator, "Unrecognized increment operator.");
+        }
+    }
+
 }
