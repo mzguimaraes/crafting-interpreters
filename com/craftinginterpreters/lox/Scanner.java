@@ -47,25 +47,28 @@ class Scanner {
             scanToken();
         }
 
-        tokens.add(new Token(TokenType.EOF, "", null, line));
-        return tokens;
-    }
-
-    List<Token> scanTokensInteractive() {
-        while (!isAtEnd()) {
-            start = current;
-            scanToken();
-        }
-
-        // if user entered an expression without a terminating semicolon,
-        // add a semicolon to the token string to allow REPL to parse the statement.
-        if (tokens.get(tokens.size() - 1).type != TokenType.SEMICOLON) {
-            tokens.add(new Token(TokenType.SEMICOLON, ";", null, line));
+        if (Lox.isInteractive()) {
+            // if user did not enter a terminating semicolon,
+            // add a semicolon to the token string to allow REPL to parse the statement.
+            if (tokens.get(tokens.size() - 1).type != TokenType.SEMICOLON) {
+                tokens.add(new Token(TokenType.SEMICOLON, ";", null, line));
+            }
         }
 
         tokens.add(new Token(TokenType.EOF, "", null, line));
         return tokens;
     }
+
+    // List<Token> scanTokensInteractive() {
+    //     while (!isAtEnd()) {
+    //         start = current;
+    //         scanToken();
+    //     }
+
+
+    //     tokens.add(new Token(TokenType.EOF, "", null, line));
+    //     return tokens;
+    // }
 
     private boolean isAtEnd() {
         return current >= source.length();

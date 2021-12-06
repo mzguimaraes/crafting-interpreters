@@ -9,17 +9,57 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     void interpret(List<Stmt> statements) {
         try {
-            for (Stmt statement : statements) {
-                execute(statement);
+            if (Lox.isInteractive()) {
+                echo(statements);
+            } else {
+                for (Stmt statement : statements) {
+                    execute(statement);
+                }
             }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
     }
 
-    public Object evaluate(Expr expr) throws RuntimeError {
+    /**
+     * Executes the statement list.
+     * Echoes the value of the final statement to System.out (nil in most cases).
+     * If the final statement is an Expression statement, echoes the value of that expression instead.
+     * This is useful for interactive contexts where the user expects to see a result for their input.
+     * @throws RuntimeError if a statement fails to execute.
+     */
+    private void echo(List<Stmt> statements) throws RuntimeError {
+        Stmt finalStatement = statements.remove(statements.size() - 1);
+        for (Stmt statement : statements) {
+            execute(statement);
+        }
+        echo(finalStatement);
+    }
+
+    /**
+     * Executes the statement, echoing its value to System.out.
+     * All statements return void when executed, so most statement types will cause "nil" to be echoed.
+     * As a special case, if statement is an expression statement, we echo the value that expression evaluates to.
+     * @throws RuntimeError if the statement fails to execute.
+     */
+    private void echo(Stmt statement) throws RuntimeError {
+        if (statement instanceof Stmt.Expression) {
+            Object result = evaluate(((Stmt.Expression)statement).expression);
+            System.out.println(Util.ANSI_GREEN + Util.stringify(result) + Util.ANSI_RESET);
+        } else {
+            // all other statement types evaluate to nil.
+            execute(statement);
+            System.out.println(Util.ANSI_GREY + "nil" + Util.ANSI_RESET);
+        }
+    }
+
+    private Object evaluate(Expr expr) throws RuntimeError {
         return expr.accept(this);
     }
+
+    // public Object evaluate(Stmt.Expression stmt) throws RuntimeError {
+    //     return stmt.expression.accept(this);
+    // }
 
     private void execute(Stmt stmt) {
         stmt.accept(this);

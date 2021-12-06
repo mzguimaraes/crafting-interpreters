@@ -10,6 +10,16 @@ import java.util.List;
 
 public class Lox {
     private static final Interpreter interpreter = new Interpreter();
+
+    private static boolean _isInteractive = false;
+
+    /**
+     * Returns true if Lox is being executed in an interactive environment like a REPL, false otherwise.
+     */
+    public static boolean isInteractive() {
+        return _isInteractive;
+    }
+
     static boolean hadError = false;
     static boolean hadRuntimeError = false;
 
@@ -36,6 +46,7 @@ public class Lox {
 
     // initializes a Lox REPL.
     public static void runPrompt() throws IOException {
+        _isInteractive = true;
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
 
@@ -43,8 +54,8 @@ public class Lox {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
-            // run(line);
-            runInteractive(line);
+            run(line);
+            // runInteractive(line);
             hadError = false;
         }
     }
@@ -60,32 +71,37 @@ public class Lox {
         // stop on errors.
         if (hadError) return;
 
+        if (_isInteractive) {
+
+        }
+
         interpreter.interpret(statements);
     }
 
-    private static void runInteractive(String source) {
-        Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokensInteractive();
+    // private static void runInteractive(String source) {
+    //     // TODO: remove Interactive methods
+    //     Scanner scanner = new Scanner(source);
+    //     List<Token> tokens = scanner.scanTokensInteractive();
 
-        Parser parser = new Parser(tokens);
-        List<Stmt> statements = parser.parse();
+    //     Parser parser = new Parser(tokens);
+    //     List<Stmt> statements = parser.parse();
 
-        // stop on errors.
-        if (hadError) return;
+    //     // stop on errors.
+    //     if (hadError) return;
 
-        if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
-            try {
-                Expr expr = ((Stmt.Expression)statements.get(0)).expression;
-                Object value = interpreter.evaluate(expr);
-                System.out.println(Util.stringify(value));
-            } catch (RuntimeError err) {
-                // TODO: this if block needs to move to Interpreter.interpret()
-                // error(expr, message);
-            }
-        } else {
-            interpreter.interpret(statements);
-        }
-    }
+    //     if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
+    //         try {
+    //             // Expr expr = ((Stmt.Expression)statements.get(0)).expression;
+    //             Object value = interpreter.evaluate(statements.get(0));
+    //             System.out.println(Util.stringify(value));
+    //         } catch (RuntimeError err) {
+    //             // TODO: this if block needs to move to Interpreter.interpret()
+    //             // error(expr, message);
+    //         }
+    //     } else {
+    //         interpreter.interpret(statements);
+    //     }
+    // }
 
     // General-purpose error handling function.
     static void error(int lineNumber, String message) {
