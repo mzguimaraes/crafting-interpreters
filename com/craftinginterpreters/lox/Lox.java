@@ -55,7 +55,6 @@ public class Lox {
             String line = reader.readLine();
             if (line == null) break;
             run(line);
-            // runInteractive(line);
             hadError = false;
         }
     }
@@ -78,31 +77,6 @@ public class Lox {
         interpreter.interpret(statements);
     }
 
-    // private static void runInteractive(String source) {
-    //     // TODO: remove Interactive methods
-    //     Scanner scanner = new Scanner(source);
-    //     List<Token> tokens = scanner.scanTokensInteractive();
-
-    //     Parser parser = new Parser(tokens);
-    //     List<Stmt> statements = parser.parse();
-
-    //     // stop on errors.
-    //     if (hadError) return;
-
-    //     if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
-    //         try {
-    //             // Expr expr = ((Stmt.Expression)statements.get(0)).expression;
-    //             Object value = interpreter.evaluate(statements.get(0));
-    //             System.out.println(Util.stringify(value));
-    //         } catch (RuntimeError err) {
-    //             // TODO: this if block needs to move to Interpreter.interpret()
-    //             // error(expr, message);
-    //         }
-    //     } else {
-    //         interpreter.interpret(statements);
-    //     }
-    // }
-
     // General-purpose error handling function.
     static void error(int lineNumber, String message) {
         report(lineNumber, "", message);
@@ -117,7 +91,10 @@ public class Lox {
     }
 
     static void runtimeError(RuntimeError error) {
-        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        String message = error.getMessage();
+        if (!_isInteractive) message += "\n[line " + error.token.line + "]";
+        System.err.println(message);
+        // System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
         hadRuntimeError = true;
     }
 

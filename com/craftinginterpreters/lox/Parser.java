@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
+// TODO: implement assignment-increment operations.
+
 /**
  * Parses a Lox string by implementing recursive descent.
  * 
@@ -42,10 +44,10 @@ import java.util.Arrays;
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  * unary          → ( "!" | "-" ) unary
- *                 | incDec ;
- * incDec         → postIncDec | preIncDec ;
- * postIncDec     → primary ( "++" | "--" )? ;
- * preIncDec      → ( "++" | "--" ) IDENTIFIER ;
+ *                 | increment ;
+ * increment         → postIncrement | preIncrement ;
+ * postIncrement     → primary ( "++" | "--" )? ;
+ * preIncrement      → ( "++" | "--" ) IDENTIFIER ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
@@ -376,7 +378,7 @@ public class Parser {
         return expr;
     }
 
-    // unary → ( "!" | "-" ) unary | incDec ;
+    // unary → ( "!" | "-" ) unary | increment ;
     private Expr unary() {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             Token operator = previous();
@@ -387,61 +389,70 @@ public class Parser {
         return increment();
     }
 
-    // incDec         → postIncDec | preIncDec ;
-    // postIncDec     → primary ( "++" | "--" )? ;
-    // preIncDec      → ( "++" | "--" ) IDENTIFIER ;
+    // increment → postIncrement | preIncrement ;
     private Expr increment() throws ParseError {
-        // TODO: this should be 3 functions.
-        Expr identifier = null;
-        Token operator = null;
-        IncrementType type = null;
         if (!match(TokenType.incrementOperators)) {
             // primary or post-inc
-            // valid: variable expr followed by an inc/dec operator ; non-variable primary not followed by inc/dec operator ; variable expr not followed by an inc/dec operator ;
-            // invalid: non-variable primary followed by an inc/dec operator ; 
-            identifier = primary();
-            if (!(identifier instanceof Expr.Variable)) {
-                if (match(TokenType.incrementOperators)) {
-                    throw error(previous(), "Expect variable identifier before post-increment operator.");
-                } else {
-                    return identifier;
-                }
-            } else {
-                if (match(TokenType.incrementOperators)) {
-                    operator = previous();
-                    switch (operator.type) {
-                        case PLUS_PLUS:
-                            type = IncrementType.POST_INCREMENT;
-                            break;
-                        case MINUS_MINUS:
-                            type = IncrementType.POST_DECREMENT;
-                            break;
-                        default:
-                            throw error(operator, "Unimplemented increment/decrement operator");
-                    }
-                } else {
-                    return identifier;
-                }
-            }
+            return postIncrement();
         } else {
             // pre-inc
-            operator = previous();
-            identifier = primary();
-            if (!(identifier instanceof Expr.Variable)) {
-                throw error(previous(), "Expect variable identifier after pre-increment operator.");
-            }
+            return preIncrement();
+        }
+    }
 
-            switch (operator.type) {
-                case PLUS_PLUS:
-                    type = IncrementType.PRE_INCREMENT;
-                    break;
-                case MINUS_MINUS:
-                    type = IncrementType.PRE_DECREMENT;
-                    break;
-                default:
-                    throw error(operator, "Unimplemented increment/decrement operator");
-            }
+    // postIncrement → primary ( "++" | "--" )? ;
+    private Expr postIncrement() throws RuntimeError {
+        Expr identifier = primary();
+        Token operator;
+        IncrementType type;
+        if ((identifier instanceof Expr.Variable)) {
+            // valid: variable expr followed by an inc/dec operator
+            if (match(TokenType.incrementOperators)) {
+                operator = previous();
+                switch (operator.type) {
+                    case PLUS_PLUS:
+                        type = IncrementType.POST_INCREMENT;
+                        break;
+                    case MINUS_MINUS:
+                        type = IncrementType.POST_DECREMENT;
+                        break;
+                    default:
+                        throw error(operator, "Unimplemented increment/decrement operator");
+                }
 
+                return new Expr.Increment(((Expr.Variable)identifier), operator, type);
+            } 
+
+        } else {
+            // invalid: non-variable primary followed by an inc/dec operator 
+            if (match(TokenType.incrementOperators)) {
+                throw error(previous(), "Expect variable identifier before post-increment operator.");
+            } 
+        }
+        // Valid: 
+        // - non-variable primary not followed by inc/dec operator
+        // - variable expr not followed by an inc/dec operator
+        return identifier;
+    }
+
+    // preIncrement → ( "++" | "--" ) IDENTIFIER ;
+    private Expr preIncrement() throws RuntimeError {
+        Token operator = previous();
+        Expr identifier = primary();
+        IncrementType type;
+        if (!(identifier instanceof Expr.Variable)) {
+            throw error(previous(), "Expect variable identifier after pre-increment operator.");
+        }
+
+        switch (operator.type) {
+            case PLUS_PLUS:
+                type = IncrementType.PRE_INCREMENT;
+                break;
+            case MINUS_MINUS:
+                type = IncrementType.PRE_DECREMENT;
+                break;
+            default:
+                throw error(operator, "Unimplemented increment/decrement operator");
         }
         return new Expr.Increment(((Expr.Variable)identifier), operator, type);
     }

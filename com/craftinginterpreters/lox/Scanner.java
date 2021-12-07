@@ -59,17 +59,6 @@ class Scanner {
         return tokens;
     }
 
-    // List<Token> scanTokensInteractive() {
-    //     while (!isAtEnd()) {
-    //         start = current;
-    //         scanToken();
-    //     }
-
-
-    //     tokens.add(new Token(TokenType.EOF, "", null, line));
-    //     return tokens;
-    // }
-
     private boolean isAtEnd() {
         return current >= source.length();
     }
@@ -89,7 +78,7 @@ class Scanner {
             case ':': addToken(TokenType.COLON); break;
 
             case '.': 
-                // check if this characgter is a leading dot for a number.
+                // check if this character is a leading dot for a number.
                 if (isDigit(peek())) {
                     number();
                 } else {
