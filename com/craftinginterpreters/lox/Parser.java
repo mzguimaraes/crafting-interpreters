@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-// TODO: implement assignment-increment operations.
+// TODO: implement:
+// doWhile → "do" statement "while" "(" expression ")" ;
 
 /**
  * Parses a Lox string into an AST by implementing recursive descent.
@@ -12,8 +13,11 @@ import java.util.Arrays;
  * Full grammar implemented by this parser:
  * 
  * program        → declaration* EOF ;
- * declaration    → varDecl
+ * declaration    → funDecl
+ *                 | varDecl
  *                 | statement ;
+ * funDecl        → "fun" function ;
+ * function       → IDENTIFIER "(" parameter? ")" block ;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
  *                 | forStmt
@@ -21,6 +25,7 @@ import java.util.Arrays;
  *                 | printStmt
  *                 | whileStmt
  *                 | loopKywd
+ *                 | returnStmt
  *                 | block ;
  * forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
  *                   expression? ";"
@@ -31,14 +36,15 @@ import java.util.Arrays;
  * ifStmt         → "if" "(" expression ")" statement ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
+ * returnStmt     → "return" expression? ";"
  * block          → "{" declaration* "}" ;
- * expression     → assignment ;
+ * expression     → comma ;
+ * comma          → assignment ( "," assignment )* ;
  * assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
  *                 | logic_or ;
  * logic_or       → logic_and ( "or" logic_and )* ;
  * logic_and      → conditional ( "and" conditional)* ;
- * conditional    → comma ( "?" expression ":" expression )* ; --right-associative
- * comma          → equality ( "," equality)* ;
+ * conditional    → equality ( "?" expression ":" expression )* ; --right-associative
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -46,8 +52,11 @@ import java.util.Arrays;
  * unary          → ( "!" | "-" ) unary
  *                 | increment ;
  * increment      → postIncrement | preIncrement ;
- * postIncrement  → primary ( "++" | "--" )? ;
+ * postIncrement  → call ( "++" | "--" )? ;
  * preIncrement   → ( "++" | "--" ) IDENTIFIER ;
+ * call           → primary ( "(" arguments? ")" )* ;
+ * // using assignment instead of expression to avoid arg list being parsed as comma operator
+ * arguments      → assignment ("," assignment )* ; 
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
@@ -82,9 +91,10 @@ public class Parser {
         return statements;
     }
 
-    // declaration → varDecl | statement ;
+    // declaration → funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
+            if (match(TokenType.FUN)) return function("function");
             if (match(TokenType.VAR)) return varDeclaration();
 
             return statement();
@@ -92,6 +102,31 @@ public class Parser {
             synchronize();
             return null;
         }
+    }
+
+    // TODO: kind should probably be an enum?
+    // function → IDENTIFIER "(" parameter? ")" block ;
+    private Stmt.Function function(String kind) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Cannot have more than 254 parameters.");
+                }
+
+                parameters.add(
+                    consume(TokenType.IDENTIFIER, "Expect parameter name.")
+                );
+            } while (match(TokenType.COMMA));
+        }
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -108,16 +143,29 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → exprStmt | ifElseStmt | printStmt | loopKywd | block ;
+    // statement → exprStmt | ifElseStmt | printStmt | loopKywd | returnStmt | block ;
     private Stmt statement() {
         if (match(TokenType.IF)) return ifElseStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.WHILE)) return whileStatement();
-        if (match(TokenType.BREAK, TokenType.CONTINUE)) return loopKeyword();
+        if (match(TokenType.loopKeywords)) return loopKeyword();
+        if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    // returnStmt     → "return" expression? ";"
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
@@ -253,13 +301,24 @@ public class Parser {
         return new Stmt.Print(value);
     }
 
-    // expression → assignment ;
+    // expression → comma ;
     private Expr expression() {
-        return assignment();
+        return comma();
     }
 
-    // assignment → IDENTIFIER "=" assignment | logic_or ; 
-    // assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
+    // comma → assignment ( "," assignment )* ;
+    private Expr comma() {
+        Expr expr = assignment();
+        while (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Expr right = assignment();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    // assignment → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
     private Expr assignment() {
         Expr expr = or();
 
@@ -317,9 +376,9 @@ public class Parser {
         return expr;
     }
 
-    // conditional → comma ( "?" expression ":" expression )* ; --right-associative
+    // conditional → equality ( "?" expression ":" expression )* ; --right-associative
     private Expr conditional() {
-        Expr predicate = comma();
+        Expr predicate = equality();
         while (match(TokenType.QUESTION_MARK)) {
             Token leftOperator = previous();
             Expr consequent = expression();
@@ -337,17 +396,6 @@ public class Parser {
         return predicate;
     }
 
-    // comma → equality ( "," equality )* ;
-    private Expr comma() {
-        Expr expr = equality();
-        while (match(TokenType.COMMA)) {
-            Token operator = previous();
-            Expr right = equality();
-            expr = new Expr.Binary(expr, operator, right);
-        }
-
-        return expr;
-    }
 
     // equality → comparison ( ( "!=" | "==" ) comparison )* ;
     private Expr equality() {
@@ -407,7 +455,7 @@ public class Parser {
     // increment → postIncrement | preIncrement ;
     private Expr increment() throws ParseError {
         if (!match(TokenType.incrementOperators)) {
-            // primary or post-inc
+            // post-inc or higher precedence expression
             return postIncrement();
         } else {
             // pre-inc
@@ -415,9 +463,9 @@ public class Parser {
         }
     }
 
-    // postIncrement → primary ( "++" | "--" )? ;
+    // postIncrement → call ( "++" | "--" )? ;
     private Expr postIncrement() throws RuntimeError {
-        Expr identifier = primary();
+        Expr identifier = call();
         Token operator;
         IncrementType type;
         if ((identifier instanceof Expr.Variable)) {
@@ -470,6 +518,38 @@ public class Parser {
                 throw error(operator, "Unimplemented increment/decrement operator");
         }
         return new Expr.Increment(((Expr.Variable)identifier), operator, type);
+    }
+
+    // call → primary ( "(" arguments? ")" )* ;
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    // arguments → assignment ("," assignment )* ; 
+    private Expr finishCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                arguments.add(assignment());
+            } while (match(TokenType.COMMA));
+            if (arguments.size() >= 255) {
+                error(peek(), "Can't have more than 255 arguments.");
+            }
+        }
+
+        Token paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after argument list. ");
+
+        return new Expr.Call(callee, paren, arguments);
     }
 
     // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | primaryError ;

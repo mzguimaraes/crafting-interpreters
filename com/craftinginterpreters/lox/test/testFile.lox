@@ -54,19 +54,51 @@
 // 
 // if (a == 5) print "Check check.";
 
-var a = 1;
-var last = 0;
-var b = '';
-for (; a != 13 ;) { // unlucky!
-    var tmp = a;
-    a = a + last;
-    last = tmp;
+// fun fibCountdown() {
+//     var a = 1;
+//     var last = 0;
+//     var b = '';
+//     for (; a != 13 ;) { // unlucky!
+//         var tmp = a;
+//         a = a + last;
+//         last = tmp;
+// 
+//         print a;
+//         var a = a;
+//         var b = b;
+//         while (a > 0) {
+//             b = b + a--;
+//         }
+//         print b;
+//     }
+// }
 
-    print a;
-    var a = a;
-    var b = b;
-    while (a > 0) {
-        b = b + a--;
-    }
-    print b;
+// fibCountdown();
+
+fun sayHi(first, last) {
+    print "Hi, " + first + " " + last + "!";
 }
+
+// sayHi("Dear", "Reader");
+
+fun fib(n) {
+    if (n <= 1) return n;
+    return fib(n - 2) + fib(n - 1);
+}
+
+// for (var i = 0; i < 20; i ++) {
+//     print (fib(i));
+// }
+
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        print ++i;
+    }
+
+    return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();
