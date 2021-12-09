@@ -43,7 +43,6 @@
     // a = b;
 // }
 
-var a = 5;
 // 
 // if (a == 1) {
 //     print "One";
@@ -55,10 +54,19 @@ var a = 5;
 // 
 // if (a == 5) print "Check check.";
 
-while (a > -10) {
-    a = a - 1;
-    if (a == 3) {
-        continue;
-    }
+var a = 1;
+var last = 0;
+var b = '';
+for (; a != 13 ;) { // unlucky!
+    var tmp = a;
+    a = a + last;
+    last = tmp;
+
     print a;
+    var a = a;
+    var b = b;
+    while (a > 0) {
+        b = b + a--;
+    }
+    print b;
 }

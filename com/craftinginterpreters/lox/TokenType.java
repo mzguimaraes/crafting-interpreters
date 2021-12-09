@@ -12,8 +12,8 @@ enum TokenType {
    EQUAL, EQUAL_EQUAL, 
    GREATER, GREATER_EQUAL,
    LESS, LESS_EQUAL,
-   MINUS, MINUS_MINUS,
-   PLUS, PLUS_PLUS,
+   MINUS, MINUS_MINUS, MINUS_EQUAL,
+   PLUS, PLUS_PLUS, PLUS_EQUAL,
 
    // Literals.
    IDENTIFIER, STRING, NUMBER,
@@ -42,8 +42,16 @@ enum TokenType {
       TokenType.CONTINUE
    };
 
+   /** List of token types that are parsed as increment operators. */
    public static final TokenType[] incrementOperators = {
       TokenType.PLUS_PLUS,
       TokenType.MINUS_MINUS
+   };
+
+   /** List of token types that are parsed as assignment operators. */
+   public static final TokenType[] assignmentOperators = {
+      TokenType.EQUAL,
+      TokenType.PLUS_EQUAL,
+      TokenType.MINUS_EQUAL
    };
 }

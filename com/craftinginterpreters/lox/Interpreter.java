@@ -302,6 +302,7 @@ public class Interpreter implements Expr.Visitor<Object>,
                 }
             } finally {
                 // TODO: we're re-evaluating condition on break--unoptimal
+                // let's leave this here for now--don't want to get too far away from book implementation
                 condition = evaluate(stmt.condition);
             }
         }

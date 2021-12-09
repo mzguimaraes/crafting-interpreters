@@ -90,6 +90,8 @@ class Scanner {
             case '-': 
                 if (match('-')) {
                     addToken(TokenType.MINUS_MINUS);
+                } else if (match('=')) {
+                    addToken(TokenType.MINUS_EQUAL);
                 } else {
                     addToken(TokenType.MINUS); 
                 }
@@ -98,6 +100,8 @@ class Scanner {
             case '+': 
                 if (match('+')) {
                     addToken(TokenType.PLUS_PLUS);
+                } else if (match('=')) {
+                    addToken(TokenType.PLUS_EQUAL);
                 } else {
                     addToken(TokenType.PLUS); 
                 }

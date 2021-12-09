@@ -7,7 +7,7 @@ import java.util.Arrays;
 // TODO: implement assignment-increment operations.
 
 /**
- * Parses a Lox string by implementing recursive descent.
+ * Parses a Lox string into an AST by implementing recursive descent.
  * 
  * Full grammar implemented by this parser:
  * 
@@ -33,7 +33,7 @@ import java.util.Arrays;
  * printStmt      → "print" expression ";" ;
  * block          → "{" declaration* "}" ;
  * expression     → assignment ;
- * assignment     → IDENTIFIER "=" assignment
+ * assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
  *                 | logic_or ;
  * logic_or       → logic_and ( "or" logic_and )* ;
  * logic_and      → conditional ( "and" conditional)* ;
@@ -45,9 +45,9 @@ import java.util.Arrays;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  * unary          → ( "!" | "-" ) unary
  *                 | increment ;
- * increment         → postIncrement | preIncrement ;
- * postIncrement     → primary ( "++" | "--" )? ;
- * preIncrement      → ( "++" | "--" ) IDENTIFIER ;
+ * increment      → postIncrement | preIncrement ;
+ * postIncrement  → primary ( "++" | "--" )? ;
+ * preIncrement   → ( "++" | "--" ) IDENTIFIER ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
@@ -259,19 +259,34 @@ public class Parser {
     }
 
     // assignment → IDENTIFIER "=" assignment | logic_or ; 
+    // assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
     private Expr assignment() {
         Expr expr = or();
 
-        if (match(TokenType.EQUAL)) {
-            Token equals = previous();
+        if (match(TokenType.assignmentOperators)) {
+            Token operator = previous();
             Expr value = assignment();
 
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).name;
+                // Syntactic sugar: parse "a += <exp>;" as "a = a + <exp>;"
+                if (operator.type == TokenType.PLUS_EQUAL) {
+                    // create binary addition expression
+                    value = new Expr.Binary(
+                        expr, 
+                        new Token(TokenType.PLUS, "+", null, operator.line), 
+                        value);
+                } else if (operator.type == TokenType.MINUS_EQUAL) {
+                    // create binary subtraction expression
+                    value = new Expr.Binary(
+                        expr, 
+                        new Token(TokenType.MINUS, "-", null, operator.line), 
+                        value);
+                }
                 return new Expr.Assign(name, value);
             }
 
-            error(equals, "Invalid assignment target.");
+            error(operator, "Invalid assignment target.");
         }
 
         return expr;
