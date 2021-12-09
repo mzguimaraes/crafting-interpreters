@@ -287,24 +287,22 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     @Override
-    public Void visitWhileStmt(Stmt.While stmt) {
+    public Void visitWhileStmt(Stmt.While stmt) throws RuntimeError {
         Object condition = evaluate(stmt.condition);
         while (isTruthy(condition)) {
             try {
                 execute(stmt.body);
+                condition = evaluate(stmt.condition);
             } catch (LoopInterrupt interrupt) {
                 if (interrupt.token.type == TokenType.CONTINUE) {
+                    condition = evaluate(stmt.condition);
                     continue;
                 } else if (interrupt.token.type == TokenType.BREAK) {
                     break;
                 } else {
                     throw new RuntimeError(interrupt.token, "Unimplmented loop interrupt.");
                 }
-            } finally {
-                // TODO: we're re-evaluating condition on break--unoptimal
-                // let's leave this here for now--don't want to get too far away from book implementation
-                condition = evaluate(stmt.condition);
-            }
+            } 
         }
 
         return null;
