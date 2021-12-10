@@ -402,4 +402,9 @@ public class Interpreter implements Expr.Visitor<Object>,
         throw new Return(value);
     }
 
+    @Override
+    public Object visitFunExpr(Expr.Fun expr) {
+        return new LoxFunction(expr, environment);
+    }
+
 }

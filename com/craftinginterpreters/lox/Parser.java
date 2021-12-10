@@ -18,6 +18,7 @@ import java.util.Arrays;
  *                 | statement ;
  * funDecl        → "fun" function ;
  * function       → IDENTIFIER "(" parameter? ")" block ;
+ * parameter      → IDENTIFIER ( "," IDENTIFIER )* ;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
  *                 | forStmt
@@ -41,7 +42,9 @@ import java.util.Arrays;
  * expression     → comma ;
  * comma          → assignment ( "," assignment )* ;
  * assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
- *                 | logic_or ;
+ *                 | logic_or 
+ *                 | funExpr ;
+ * funExpr        → "fun" "(" parameter? ")" block ;
  * logic_or       → logic_and ( "or" logic_and )* ;
  * logic_and      → conditional ( "and" conditional)* ;
  * conditional    → equality ( "?" expression ":" expression )* ; --right-associative
@@ -109,6 +112,18 @@ public class Parser {
     private Stmt.Function function(String kind) {
         Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
         consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+        List<Token> parameters = parameter();
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
+    }
+
+    // parameter → IDENTIFIER ( "," IDENTIFIER )* ;
+    private List<Token> parameter() {
         List<Token> parameters = new ArrayList<>();
         if (!check(TokenType.RIGHT_PAREN)) {
             do {
@@ -121,12 +136,7 @@ public class Parser {
                 );
             } while (match(TokenType.COMMA));
         }
-
-        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
-
-        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
-        List<Stmt> body = block();
-        return new Stmt.Function(name, parameters, body);
+        return parameters;
     }
 
     // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -306,6 +316,22 @@ public class Parser {
         return comma();
     }
 
+    // funExpr → "fun" "(" parameter? ")" block ;
+    private Expr.Fun funExpr() {
+        Token keyword = previous();
+
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'fun' keyword.");
+
+        List<Token> params = parameter();
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before function body.");
+        List<Stmt> body = block();
+
+        return new Expr.Fun(params, body, keyword);
+    }
+
     // comma → assignment ( "," assignment )* ;
     private Expr comma() {
         Expr expr = assignment();
@@ -319,7 +345,12 @@ public class Parser {
     }
 
     // assignment → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
+    //              | logic_or
+    //              | funExpr
     private Expr assignment() {
+        if (match(TokenType.FUN)) {
+            return funExpr();
+        }
         Expr expr = or();
 
         if (match(TokenType.assignmentOperators)) {
