@@ -7,7 +7,7 @@ import java.util.Stack;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Map<String, VarState>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
 
     public Resolver(Interpreter interpreter) {
@@ -64,27 +64,45 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(new HashMap<String, VarState>());
     }
 
     private void endScope() {
-        scopes.pop();
+        Map<String, VarState> scope = scopes.pop();
+        checkVarUsage(scope);
     }
 
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = scopes.peek();
+        Map<String, VarState> scope = scopes.peek();
         if (scope.containsKey(name.lexeme)) {
             Lox.error(name, "Cannot re-declare variable '" + name.lexeme + "' in this scope.");
         }
-        scope.put(name.lexeme, false);
+        VarState state = new VarState(VarStatus.DECLARED, name);
+        scope.put(name.lexeme, state);
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
 
-        scopes.peek().put(name.lexeme, true);
+        Map<String, VarState> scope = scopes.peek();
+        VarState state = scope.get(name.lexeme);
+        state.status = VarStatus.DEFINED;
+
+        scope.put(name.lexeme, state);
+    }
+
+    /**
+     * Checks that all variables declared in scope have been used at least once.
+     * If an unused variable is found in scope, a warning is generated.
+     */
+    private void checkVarUsage(Map<String, VarState> scope) {
+        for (VarState state : scope.values()) {
+            if (state.status != VarStatus.USED) {
+                Lox.warning(state.declaration, "Variable unused.");
+            }
+        }
     }
 
     @Override
@@ -232,10 +250,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVariableExpr(Expr.Variable expr) {
-        if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
-            Lox.error(expr.name, "Cannot read local variable in its own initializer.");
+        if (!scopes.isEmpty()) {
+            Map<String, VarState> scope = scopes.peek();
+            VarState state = scope.get(expr.name.lexeme);
+            if (state != null) {
+                if (state.status == VarStatus.DECLARED) {
+                    Lox.error(expr.name, "Cannot read local variable in its own initializer.");
+                }
+                state.status = VarStatus.USED;
+                scope.put(expr.name.lexeme, state);
+            }
         }
-
         resolveLocal(expr, expr.name);
         return null;
     }

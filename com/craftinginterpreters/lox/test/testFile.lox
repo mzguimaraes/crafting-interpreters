@@ -128,19 +128,33 @@
 
 // (fun () {print 'foo';})();
 
-fun foo() {
-    print 'first foo';
-}
+// fun foo() {
+//     print 'first foo';
+// }
 
 // fun bar() {
 //     bar = foo;
 //     bar();
 // }
 
-var bar = fun(count) {
+var waste = "womp";
+
+{
+    var woo = "foo";
+}
+
+// var bar = fun(count) {
+//     var foo = "woo";
+//     print count--;
+//     if (count > 0)
+//         bar(count);
+// };
+
+fun bar(count) {
+    var foo = "woo";
     print count--;
     if (count > 0)
         bar(count);
-};
+}
 
 bar(3);
