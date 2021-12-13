@@ -70,9 +70,11 @@ public class Lox {
         // stop on errors.
         if (hadError) return;
 
-        if (_isInteractive) {
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
 
-        }
+        // Stop on resolution errors.
+        if (hadError) return;
 
         interpreter.interpret(statements);
     }

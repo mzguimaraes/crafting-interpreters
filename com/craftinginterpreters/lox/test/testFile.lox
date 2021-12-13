@@ -110,18 +110,37 @@
 // 
 // scope(1);
 
-fun thrice(fn) {
-    for (var i = 1; i <=3; i++) {
-        fn(i);
-    }
+// fun thrice(fn) {
+//     for (var i = 1; i <=3; i++) {
+//         fn(i);
+//     }
+// }
+// 
+// thrice(fun (a) {
+//     print a;
+// });
+// 
+// var triple = fun(i) {
+//     return 3 * i;
+// };
+// 
+// print triple(3);
+
+// (fun () {print 'foo';})();
+
+fun foo() {
+    print 'first foo';
 }
 
-thrice(fun (a) {
-    print a;
-});
+// fun bar() {
+//     bar = foo;
+//     bar();
+// }
 
-var triple = fun(i) {
-    return 3 * i;
+var bar = fun(count) {
+    print count--;
+    if (count > 0)
+        bar(count);
 };
 
-print triple(3);
+bar(3);
