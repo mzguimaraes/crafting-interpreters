@@ -13,9 +13,11 @@ import java.util.Arrays;
  * Full grammar implemented by this parser:
  * 
  * program        → declaration* EOF ;
- * declaration    → funDecl
+ * declaration    → classDecl
+ *                 | funDecl
  *                 | varDecl
  *                 | statement ;
+ * classDecl      → "class" IDENTIFIER "{" function* "}" ;
  * funDecl        → "fun" function ;
  * function       → IDENTIFIER "(" parameter? ")" block ;
  * parameter      → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -41,7 +43,7 @@ import java.util.Arrays;
  * block          → "{" declaration* "}" ;
  * expression     → comma ;
  * comma          → assignment ( "," assignment )* ;
- * assignment     → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
+ * assignment     → ( call "." )? IDENTIFIER ( "=" | "+=" | "-=" ) assignment
  *                 | logic_or 
  *                 | funExpr ;
  * funExpr        → "fun" "(" parameter? ")" block ;
@@ -57,7 +59,7 @@ import java.util.Arrays;
  * increment      → postIncrement | preIncrement ;
  * postIncrement  → call ( "++" | "--" )? ;
  * preIncrement   → ( "++" | "--" ) IDENTIFIER ;
- * call           → primary ( "(" arguments? ")" )* ;
+ * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  * // using assignment instead of expression to avoid arg list being parsed as comma operator
  * arguments      → assignment ("," assignment )* ; 
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
@@ -94,9 +96,10 @@ public class Parser {
         return statements;
     }
 
-    // declaration → funDecl | varDecl | statement ;
+    // declaration → classDecl | funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
+            if (match(TokenType.CLASS)) return classDeclaration();
             if (match(TokenType.FUN)) return function("function");
             if (match(TokenType.VAR)) return varDeclaration();
 
@@ -105,6 +108,21 @@ public class Parser {
             synchronize();
             return null;
         }
+    }
+
+    // classDecl → "class" IDENTIFIER "{" function* "}" ;
+    private Stmt.Class classDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
     }
 
     // TODO: kind should probably be an enum?
@@ -344,7 +362,7 @@ public class Parser {
         return expr;
     }
 
-    // assignment → IDENTIFIER ( "=" | "+=" | "-=" ) assignment
+    // assignment → ( call "." )? IDENTIFIER ( "=" | "+=" | "-=" ) assignment
     //              | logic_or
     //              | funExpr
     private Expr assignment() {
@@ -374,6 +392,9 @@ public class Parser {
                         value);
                 }
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr.Get get = (Expr.Get)expr;
+                return new Expr.Set(get.object, get.name, value);
             }
 
             error(operator, "Invalid assignment target.");
@@ -551,13 +572,16 @@ public class Parser {
         return new Expr.Increment(((Expr.Variable)identifier), operator, type);
     }
 
-    // call → primary ( "(" arguments? ")" )* ;
+    // call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
     private Expr call() {
         Expr expr = primary();
 
         while (true) {
             if (match(TokenType.LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(TokenType.DOT)) {
+                Token name = consume(TokenType.IDENTIFIER, "Expect property name after dot access '.'.");
+                expr = new Expr.Get(expr, name); 
             } else {
                 break;
             }
@@ -592,6 +616,8 @@ public class Parser {
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
         }
+
+        if (match(TokenType.THIS)) return new Expr.This(previous());
 
         if (match(TokenType.IDENTIFIER)) {
             return new Expr.Variable(previous());

@@ -137,12 +137,6 @@
 //     bar();
 // }
 
-var waste = "womp";
-
-{
-    var woo = "foo";
-}
-
 // var bar = fun(count) {
 //     var foo = "woo";
 //     print count--;
@@ -150,11 +144,26 @@ var waste = "womp";
 //         bar(count);
 // };
 
-fun bar(count) {
-    var foo = "woo";
-    print count--;
-    if (count > 0)
-        bar(count);
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
 }
 
-bar(3);
+var callback = Thing().getCallback();
+callback();
+
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".

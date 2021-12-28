@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.Map.Entry;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, VarState>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -16,7 +18,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        INITIALIZER,
+        METHOD
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS
     }
 
     void resolve(List<Stmt> stmts) {
@@ -98,8 +107,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
      * If an unused variable is found in scope, a warning is generated.
      */
     private void checkVarUsage(Map<String, VarState> scope) {
-        for (VarState state : scope.values()) {
-            if (state.status != VarStatus.USED) {
+        for (Entry<String, VarState> entry : scope.entrySet()) {
+            VarState state = entry.getValue();
+            if (state.status != VarStatus.USED && entry.getKey() != "this") {
                 Lox.warning(state.declaration, "Variable unused.");
             }
         }
@@ -159,6 +169,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(stmt.keyword, "Can't return from top-level code.");
         }
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+            }
             resolve(stmt.value);
         }
         return null;
@@ -268,6 +281,48 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitIncrementExpr(Expr.Increment expr) {
         resolve(expr.identifier);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+        declare(stmt.name);
+        define(stmt.name);
+
+        beginScope();
+        scopes.peek().put("this", new VarState(VarStatus.DEFINED, null));
+        for (Stmt.Function method : stmt.methods) {
+            FunctionType declaration = method.name.lexeme.equals("init") ?
+                FunctionType.INITIALIZER :
+                FunctionType.METHOD;
+            resolveFunction(method, declaration);
+        }
+        endScope();
+        currentClass = enclosingClass;
+        return null;
+    }
+
+    @Override
+    public Void visitGetExpr(Expr.Get expr) {
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpr(Expr.Set expr) {
+        resolve(expr.value);
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+        }
+        resolveLocal(expr, expr.keyword);
         return null;
     }
     

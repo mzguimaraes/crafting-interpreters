@@ -10,12 +10,15 @@ public class LoxFunction implements LoxCallable<Object> {
     private final Token name;
     private final Environment closure;
 
-    LoxFunction(Stmt.Function declaration, Environment closure) {
+    private final Boolean isInitializer;
+
+    LoxFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) {
         // this.declaration = declaration;
         this.params = declaration.params;
         this.body = declaration.body;
         this.name = declaration.name;
         this.closure = closure;
+        this.isInitializer = isInitializer;
     }
 
     LoxFunction(Expr.Fun expr, Environment closure) {
@@ -23,6 +26,16 @@ public class LoxFunction implements LoxCallable<Object> {
         this.params = expr.params;
         this.body = expr.body;
         this.name = new Token(TokenType.IDENTIFIER, "anonymous", null, expr.keyword.line);
+        // in our grammar, initializers are never expressions.
+        this.isInitializer = false;
+    }
+
+    LoxFunction(List<Token> params, List<Stmt> body, Token name, Environment closure, boolean isInitializer) {
+        this.params = params;
+        this.body = body;
+        this.name = name; 
+        this.closure = closure;
+        this.isInitializer = isInitializer;
     }
 
     @Override
@@ -40,14 +53,22 @@ public class LoxFunction implements LoxCallable<Object> {
         try {
             interpreter.executeBlock(body, environment);
         } catch (Return returnValue) {
+            if (isInitializer) return closure.getAt(0, "this");
             return returnValue.value;
         }
+        if (isInitializer) return closure.getAt(0, "this");
         return null;
     }
 
     @Override
     public String toString() {
         return "<fn " + name.lexeme + ">";
+    }
+
+    LoxFunction bind(LoxInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("this", instance);
+        return new LoxFunction(this.params, this.body, this.name, environment, isInitializer);
     }
     
 }
