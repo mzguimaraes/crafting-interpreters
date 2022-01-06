@@ -3,13 +3,16 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import java.util.Map;
 
-public class LoxClass implements LoxCallable<Object> {
+// TODO: implement static fields.
+public class LoxClass implements LoxCallable<Object>, MemberStore {
     final String name;
     private final Map<String, LoxFunction> methods;
+    private final Map<String, LoxFunction> staticMethods;
 
-    LoxClass(String name, Map<String, LoxFunction> methods) {
+    LoxClass(String name, Map<String, LoxFunction> methods, Map<String, LoxFunction> staticMethods) {
         this.name = name;
         this.methods = methods;
+        this.staticMethods = staticMethods;
     }
 
     @Override
@@ -39,5 +42,24 @@ public class LoxClass implements LoxCallable<Object> {
             return methods.get(name);
         }
         return null;
+    }
+
+    @Override
+    public Object get(Token name) {
+        if (staticMethods.containsKey(name.lexeme)) {
+            LoxFunction method = staticMethods.get(name.lexeme);
+            return method.bind(this);
+        } else {
+            throw new RuntimeError(name, "Undefined static method " + name.lexeme);
+        }
+    }
+
+    @Override
+    public void set(Token name, Object value) {
+        if (value instanceof LoxFunction) {
+            staticMethods.put(name.lexeme, (LoxFunction)value);
+        } else {
+            throw new RuntimeError(name, "Static fields aren't implemented in Lox yet.");
+        }
     }
 }

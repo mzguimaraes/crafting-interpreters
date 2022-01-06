@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox;
 import java.util.Map;
 import java.util.HashMap;
 
-public class LoxInstance {
+public class LoxInstance implements MemberStore {
     private LoxClass klass;
     private final Map<String, Object> fields = new HashMap<>();
     
@@ -11,7 +11,7 @@ public class LoxInstance {
         this.klass = klass;
     }
 
-    Object get(Token name) {
+    public Object get(Token name) {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
         }
@@ -22,7 +22,7 @@ public class LoxInstance {
         throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }
 
-    void set(Token name, Object value) {
+    public void set(Token name, Object value) {
         fields.put(name.lexeme, value);
     }
 

@@ -158,6 +158,9 @@ var callback = Thing().getCallback();
 callback();
 
 class Cake {
+  init() {
+    flavor = "Black Forest";
+  }
   taste() {
     var adjective = "delicious";
     print "The " + this.flavor + " cake is " + adjective + "!";
@@ -165,5 +168,5 @@ class Cake {
 }
 
 var cake = Cake();
-cake.flavor = "German chocolate";
+// cake.flavor = "German chocolate";
 cake.taste(); // Prints "The German chocolate cake is delicious!".
