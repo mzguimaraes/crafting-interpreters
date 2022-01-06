@@ -433,13 +433,20 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Void visitClassStmt(Stmt.Class stmt) {
         environment.define(stmt.name.lexeme, null);
 
-        Map<String, LoxFunction> methods = new HashMap<>();
+        Map<String, LoxFunction> instanceMethods = new HashMap<>();
+        Map<String, LoxFunction> staticMethods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
-            LoxFunction function = new LoxFunction(method, environment, method.name.lexeme.equals("init"));
-            methods.put(method.name.lexeme, function);
+            Boolean isInitializer = method.name.lexeme.equals("init");
+            LoxFunction function = new LoxFunction(method, environment, isInitializer);
+            // init() is treated specially and needs to stay with its instance methods.
+            if (method.isStatic && !isInitializer) {
+                staticMethods.put(method.name.lexeme, function);
+            } else {
+                instanceMethods.put(method.name.lexeme, function);
+            }
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+        LoxClass klass = new LoxClass(stmt.name.lexeme, instanceMethods, staticMethods);
         environment.assign(stmt.name, klass);
         return null;
     }
@@ -447,8 +454,8 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
-        if (object instanceof LoxInstance) {
-            return ((LoxInstance)object).get(expr.name);
+        if (object instanceof MemberStore) {
+            return ((MemberStore)object).get(expr.name);
         }
 
         throw new RuntimeError(expr.name, "Cannot access property of non-instance.");
@@ -458,12 +465,12 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Object visitSetExpr(Expr.Set expr) {
         Object object = evaluate(expr.object);
 
-        if (!(object instanceof LoxInstance)) {
+        if (!(object instanceof MemberStore)) {
             throw new RuntimeError(expr.name, "Only instances have fields.");
         }
 
         Object value = evaluate(expr.value);
-        ((LoxInstance)object).set(expr.name, value);
+        ((MemberStore)object).set(expr.name, value);
         return value;
     }
 

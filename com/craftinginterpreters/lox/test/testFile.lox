@@ -146,11 +146,9 @@
 
 class Thing {
   getCallback() {
-    fun localFunction() {
+    return fun () {
       print this;
-    }
-
-    return localFunction;
+    };
   }
 }
 
@@ -159,14 +157,27 @@ callback();
 
 class Cake {
   init() {
-    flavor = "Black Forest";
+    this.flavor = "Black Forest";
   }
   taste() {
-    var adjective = "delicious";
-    print "The " + this.flavor + " cake is " + adjective + "!";
+    var flavor = "delicious";
+    print "The " + this.flavor + " cake is " + flavor + "!";
   }
 }
 
-var cake = Cake();
-// cake.flavor = "German chocolate";
-cake.taste(); // Prints "The German chocolate cake is delicious!".
+class Math {
+  class square(x) {
+    return x * x;
+  }
+}
+
+print Math.square(5);
+
+
+var gateau = Cake();
+gateau.foo = fun () {
+  print "bar";
+};
+gateau.flavor = "Confetti";
+gateau.taste();
+gateau.foo();

@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 // TODO: implement:
 // doWhile → "do" statement "while" "(" expression ")" ;
+// error production for calling init() directly on a class type (i.e. Foo.init()).
 
 /**
  * Parses a Lox string into an AST by implementing recursive descent.
@@ -17,7 +18,7 @@ import java.util.Arrays;
  *                 | funDecl
  *                 | varDecl
  *                 | statement ;
- * classDecl      → "class" IDENTIFIER "{" function* "}" ;
+ * classDecl      → "class" IDENTIFIER "{" ( "class"? function )* "}" ;
  * funDecl        → "fun" function ;
  * function       → IDENTIFIER "(" parameter? ")" block ;
  * parameter      → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -79,6 +80,12 @@ public class Parser {
 
     private int loopsInside = 0;
 
+    private enum FunctionType {
+        FUNCTION,
+        INSTANCE_METHOD,
+        STATIC_METHOD
+    }
+
     Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
@@ -100,7 +107,7 @@ public class Parser {
     private Stmt declaration() {
         try {
             if (match(TokenType.CLASS)) return classDeclaration();
-            if (match(TokenType.FUN)) return function("function");
+            if (match(TokenType.FUN)) return function(FunctionType.FUNCTION);
             if (match(TokenType.VAR)) return varDeclaration();
 
             return statement();
@@ -110,14 +117,18 @@ public class Parser {
         }
     }
 
-    // classDecl → "class" IDENTIFIER "{" function* "}" ;
+    // classDecl → "class" IDENTIFIER "{" ( "class"?  function )* "}" ;
     private Stmt.Class classDeclaration() {
         Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
         consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            methods.add(function("method"));
+            if (match(TokenType.CLASS)) {
+                methods.add(function(FunctionType.STATIC_METHOD));
+            } else {
+                methods.add(function(FunctionType.INSTANCE_METHOD));
+            }
         }
 
         consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
@@ -125,9 +136,8 @@ public class Parser {
         return new Stmt.Class(name, methods);
     }
 
-    // TODO: kind should probably be an enum?
     // function → IDENTIFIER "(" parameter? ")" block ;
-    private Stmt.Function function(String kind) {
+    private Stmt.Function function(FunctionType kind) {
         Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
         consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
 
@@ -137,7 +147,7 @@ public class Parser {
 
         consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.Function(name, parameters, body, kind == FunctionType.STATIC_METHOD);
     }
 
     // parameter → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -369,38 +379,38 @@ public class Parser {
         if (match(TokenType.FUN)) {
             return funExpr();
         }
-        Expr expr = or();
+        Expr identifier = or(); // if we're not in an assignment, then this var holds the result of the logic_or production.
 
         if (match(TokenType.assignmentOperators)) {
             Token operator = previous();
             Expr value = assignment();
 
-            if (expr instanceof Expr.Variable) {
-                Token name = ((Expr.Variable)expr).name;
+            if (identifier instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)identifier).name;
                 // Syntactic sugar: parse "a += <exp>;" as "a = a + <exp>;"
                 if (operator.type == TokenType.PLUS_EQUAL) {
                     // create binary addition expression
                     value = new Expr.Binary(
-                        expr, 
+                        identifier, 
                         new Token(TokenType.PLUS, "+", null, operator.line), 
                         value);
                 } else if (operator.type == TokenType.MINUS_EQUAL) {
                     // create binary subtraction expression
                     value = new Expr.Binary(
-                        expr, 
+                        identifier, 
                         new Token(TokenType.MINUS, "-", null, operator.line), 
                         value);
                 }
                 return new Expr.Assign(name, value);
-            } else if (expr instanceof Expr.Get) {
-                Expr.Get get = (Expr.Get)expr;
+            } else if (identifier instanceof Expr.Get) {
+                Expr.Get get = (Expr.Get)identifier;
                 return new Expr.Set(get.object, get.name, value);
             }
 
             error(operator, "Invalid assignment target.");
         }
 
-        return expr;
+        return identifier;
     }
 
     // logic_or → logic_and ( "or" logic_and )* ;
