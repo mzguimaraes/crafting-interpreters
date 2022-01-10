@@ -181,3 +181,14 @@ gateau.foo = fun () {
 gateau.flavor = "Confetti";
 gateau.taste();
 gateau.foo();
+
+Cake.bar = fun () {print "foo";};
+
+Cake.bar();
+
+gateau.bar = "gateau bar";
+print gateau.bar;
+
+Cake.baker = "Charles le Main";
+Cake.printBakerName = fun () { print Cake.baker; };
+Cake.printBakerName();

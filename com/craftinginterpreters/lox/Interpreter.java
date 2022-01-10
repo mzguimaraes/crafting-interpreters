@@ -434,19 +434,19 @@ public class Interpreter implements Expr.Visitor<Object>,
         environment.define(stmt.name.lexeme, null);
 
         Map<String, LoxFunction> instanceMethods = new HashMap<>();
-        Map<String, LoxFunction> staticMethods = new HashMap<>();
+        Map<String, Object> statics = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
             Boolean isInitializer = method.name.lexeme.equals("init");
             LoxFunction function = new LoxFunction(method, environment, isInitializer);
             // init() is treated specially and needs to stay with its instance methods.
             if (method.isStatic && !isInitializer) {
-                staticMethods.put(method.name.lexeme, function);
+                statics.put(method.name.lexeme, function);
             } else {
                 instanceMethods.put(method.name.lexeme, function);
             }
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, instanceMethods, staticMethods);
+        LoxClass klass = new LoxClass(stmt.name.lexeme, instanceMethods, statics);
         environment.assign(stmt.name, klass);
         return null;
     }
@@ -458,7 +458,7 @@ public class Interpreter implements Expr.Visitor<Object>,
             return ((MemberStore)object).get(expr.name);
         }
 
-        throw new RuntimeError(expr.name, "Cannot access property of non-instance.");
+        throw new RuntimeError(expr.name, "Cannot access member of a non-member-storing entity.");
     }
 
     @Override
