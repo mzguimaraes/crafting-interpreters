@@ -6,24 +6,17 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Launch AstRpnPrinter",
-      "request": "launch",
-      "mainClass": "com.craftinginterpreters.lox.AstRpnPrinter",
-      "projectName": "crafting-interpreters_f167b875"
-    },
-    {
-      "type": "java",
       "name": "Launch Lox",
       "request": "launch",
       "mainClass": "com.craftinginterpreters.lox.Lox",
-      "projectName": "crafting-interpreters_f167b875"
+      "projectName": "crafting-interpreters_a098beeb"
     },
     {
       "type": "java",
       "name": "Run testFile.lox",
       "request": "launch",
       "mainClass": "com.craftinginterpreters.lox.Lox",
-      "projectName": "crafting-interpreters_f167b875",
+      "projectName": "crafting-interpreters_a098beeb",
       "args": "com/craftinginterpreters/lox/test/testFile.lox"
     },
     {
