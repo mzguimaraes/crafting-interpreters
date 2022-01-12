@@ -455,7 +455,11 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
         if (object instanceof MemberStore) {
-            return ((MemberStore)object).get(expr.name);
+            Object retrieved = ((MemberStore)object).get(expr.name);
+            if (retrieved instanceof LoxFunction && ((LoxFunction)retrieved).isAutoInvoke) {
+                retrieved = ((LoxFunction)retrieved).call(this, new ArrayList<>());
+            }
+            return retrieved;
         }
 
         throw new RuntimeError(expr.name, "Cannot access member of a non-member-storing entity.");

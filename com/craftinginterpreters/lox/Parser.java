@@ -20,7 +20,7 @@ import java.util.Arrays;
  *                 | statement ;
  * classDecl      → "class" IDENTIFIER "{" ( "class"? function )* "}" ;
  * funDecl        → "fun" function ;
- * function       → IDENTIFIER "(" parameter? ")" block ;
+ * function       → IDENTIFIER ( "(" parameter? ")" )? block ;
  * parameter      → IDENTIFIER ( "," IDENTIFIER )* ;
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  * statement      → exprStmt
@@ -136,18 +136,27 @@ public class Parser {
         return new Stmt.Class(name, methods);
     }
 
-    // function → IDENTIFIER "(" parameter? ")" block ;
+    // function → IDENTIFIER ( "(" parameter? ")" )? block ;
     private Stmt.Function function(FunctionType kind) {
         Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
-        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters;
+        Boolean isGetter = false;
 
-        List<Token> parameters = parameter();
+        if (check(TokenType.LEFT_PAREN)) {
+            consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
 
-        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
+            parameters = parameter();
+
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after parameter list.");
+        } else {
+            // if the param list is omitted from the definition, user is defining a getter.
+            parameters = new ArrayList<>();
+            isGetter = true;
+        }
 
         consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
-        return new Stmt.Function(name, parameters, body, kind == FunctionType.STATIC_METHOD);
+        return new Stmt.Function(name, parameters, body, kind == FunctionType.STATIC_METHOD, isGetter);
     }
 
     // parameter → IDENTIFIER ( "," IDENTIFIER )* ;

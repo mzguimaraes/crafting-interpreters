@@ -35,7 +35,7 @@ public class GenerateAst {
             "Block      : List<Stmt> statements",
             "Class      : Token name, List<Stmt.Function> methods",
             "Expression : Expr expression",
-            "Function   : Token name, List<Token> params, List<Stmt> body, Boolean isStatic",
+            "Function   : Token name, List<Token> params, List<Stmt> body, Boolean isStatic, Boolean isAutoInvoke",
             "IfElse     : List<Stmt.If> ifBranches, Stmt elseBranch",
             "If         : Expr condition, Stmt body",
             "Print      : Expr expression",

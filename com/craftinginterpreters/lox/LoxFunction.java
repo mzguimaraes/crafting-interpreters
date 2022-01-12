@@ -10,7 +10,8 @@ public class LoxFunction implements LoxCallable<Object> {
     private final Token name;
     private final Environment closure;
 
-    private final Boolean isInitializer;
+    public final Boolean isInitializer;
+    public final Boolean isAutoInvoke;
 
     LoxFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) {
         // this.declaration = declaration;
@@ -19,6 +20,7 @@ public class LoxFunction implements LoxCallable<Object> {
         this.name = declaration.name;
         this.closure = closure;
         this.isInitializer = isInitializer;
+        this.isAutoInvoke = declaration.isAutoInvoke;
     }
 
     LoxFunction(Expr.Fun expr, Environment closure) {
@@ -26,15 +28,17 @@ public class LoxFunction implements LoxCallable<Object> {
         this.params = expr.params;
         this.body = expr.body;
         this.name = new Token(TokenType.IDENTIFIER, "anonymous", null, expr.keyword.line);
+        this.isAutoInvoke = false;
         // in our grammar, initializers are never expressions.
         this.isInitializer = false;
     }
 
-    LoxFunction(List<Token> params, List<Stmt> body, Token name, Environment closure, boolean isInitializer) {
+    LoxFunction(List<Token> params, List<Stmt> body, Token name, Environment closure, boolean isInitializer, boolean isAutoInvoke) {
         this.params = params;
         this.body = body;
         this.name = name; 
         this.closure = closure;
+        this.isAutoInvoke = isAutoInvoke;
         this.isInitializer = isInitializer;
     }
 
@@ -68,12 +72,12 @@ public class LoxFunction implements LoxCallable<Object> {
     LoxFunction bind(LoxInstance instance) {
         Environment environment = new Environment(closure);
         environment.define("this", instance);
-        return new LoxFunction(this.params, this.body, this.name, environment, isInitializer);
+        return new LoxFunction(this.params, this.body, this.name, environment, this.isInitializer, this.isAutoInvoke);
     }
 
     LoxFunction bind(LoxClass klass) {
         Environment environment = new Environment(closure);
-        return new LoxFunction(this.params, this.body, this.name, environment, isInitializer);
+        return new LoxFunction(this.params, this.body, this.name, environment, this.isInitializer, this.isAutoInvoke);
     }
     
 }

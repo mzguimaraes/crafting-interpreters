@@ -163,6 +163,11 @@ class Cake {
     var flavor = "delicious";
     print "The " + this.flavor + " cake is " + flavor + "!";
   }
+
+  isGerman {
+    return this.flavor == "Black Forest";
+  }
+
 }
 
 class Math {
@@ -192,3 +197,13 @@ print gateau.bar;
 Cake.baker = "Charles le Main";
 Cake.printBakerName = fun () { print Cake.baker; };
 Cake.printBakerName();
+
+Math.PI = 3.14159;
+print Math.PI;
+
+if (gateau.isGerman) {
+  print "The " + gateau.flavor + " cake is German";
+} else {
+
+  print "The " + gateau.flavor + " cake is NOT German!";
+}

@@ -56,11 +56,12 @@ public abstract class Stmt {
 		public final Expr expression;
 	}
 	public static class Function extends Stmt {
-		Function(Token name, List<Token> params, List<Stmt> body, Boolean isStatic) {
+		Function(Token name, List<Token> params, List<Stmt> body, Boolean isStatic, Boolean isAutoInvoke) {
 			this.name = name;
 			this.params = params;
 			this.body = body;
 			this.isStatic = isStatic;
+			this.isAutoInvoke = isAutoInvoke;
 		}
 
 		@Override
@@ -72,6 +73,7 @@ public abstract class Stmt {
 		public final List<Token> params;
 		public final List<Stmt> body;
 		public final Boolean isStatic;
+		public final Boolean isAutoInvoke;
 	}
 	public static class IfElse extends Stmt {
 		IfElse(List<Stmt.If> ifBranches, Stmt elseBranch) {

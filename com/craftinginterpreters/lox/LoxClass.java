@@ -3,7 +3,6 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import java.util.Map;
 
-// TODO: implement static fields.
 public class LoxClass implements LoxCallable<Object>, MemberStore {
     final String name;
     private final Map<String, LoxFunction> instanceMethods;
@@ -60,11 +59,6 @@ public class LoxClass implements LoxCallable<Object>, MemberStore {
 
     @Override
     public void set(Token memberId, Object value) {
-        // if (value instanceof LoxFunction) {
-        //     statics.put(memberId.lexeme, (LoxFunction)value);
-        // } else {
-
-        // }
         statics.put(memberId.lexeme, value);
     }
 }
