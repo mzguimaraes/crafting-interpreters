@@ -1,6 +1,6 @@
 package com.craftinginterpreters.lox;
 
-enum VarStatus {
+enum VarLifecycle {
     DECLARED,
     DEFINED,
     USED

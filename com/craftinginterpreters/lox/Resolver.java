@@ -88,7 +88,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (scope.containsKey(name.lexeme)) {
             Lox.error(name, "Cannot re-declare variable '" + name.lexeme + "' in this scope.");
         }
-        VarState state = new VarState(VarStatus.DECLARED, name);
+        VarState state = new VarState(VarLifecycle.DECLARED, name);
         scope.put(name.lexeme, state);
     }
 
@@ -97,7 +97,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         Map<String, VarState> scope = scopes.peek();
         VarState state = scope.get(name.lexeme);
-        state.status = VarStatus.DEFINED;
+        state.status = VarLifecycle.DEFINED;
 
         scope.put(name.lexeme, state);
     }
@@ -109,7 +109,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void checkVarUsage(Map<String, VarState> scope) {
         for (Entry<String, VarState> entry : scope.entrySet()) {
             VarState state = entry.getValue();
-            if (state.status != VarStatus.USED && entry.getKey() != "this") {
+            if (state.status != VarLifecycle.USED && entry.getKey() != "this") {
                 Lox.warning(state.declaration, "Variable unused.");
             }
         }
@@ -267,10 +267,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Map<String, VarState> scope = scopes.peek();
             VarState state = scope.get(expr.name.lexeme);
             if (state != null) {
-                if (state.status == VarStatus.DECLARED) {
+                if (state.status == VarLifecycle.DECLARED) {
                     Lox.error(expr.name, "Cannot read local variable in its own initializer.");
                 }
-                state.status = VarStatus.USED;
+                state.status = VarLifecycle.USED;
                 scope.put(expr.name.lexeme, state);
             }
         }
@@ -300,7 +300,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         beginScope();
-        scopes.peek().put("this", new VarState(VarStatus.DEFINED, null));
+        scopes.peek().put("this", new VarState(VarLifecycle.DEFINED, null));
         for (Stmt.Function method : stmt.methods) {
             FunctionType declaration = method.name.lexeme.equals("init") ?
                 FunctionType.INITIALIZER :
