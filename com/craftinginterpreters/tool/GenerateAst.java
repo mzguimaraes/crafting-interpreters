@@ -20,6 +20,7 @@ public class GenerateAst {
             "Fun        : List<Token> params, List<Stmt> body, Token keyword",
             "Get        : Expr object, Token name",
             "Set        : Expr object, Token name, Expr value",
+            "Super      : Token keyword, Token method",
             "This       : Token keyword",
             "Grouping   : Expr expression",
             "Literal    : Object value",
