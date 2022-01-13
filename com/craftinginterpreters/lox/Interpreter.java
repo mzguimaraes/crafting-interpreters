@@ -454,7 +454,7 @@ public class Interpreter implements Expr.Visitor<Object>,
             }
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, instanceMethods, statics);
+        LoxClass klass = new LoxClass(stmt.name.lexeme, (LoxClass)superclass, instanceMethods, statics);
         environment.assign(stmt.name, klass);
         return null;
     }

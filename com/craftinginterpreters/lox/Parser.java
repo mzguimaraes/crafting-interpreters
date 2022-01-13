@@ -66,6 +66,7 @@ import java.util.Arrays;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")"
  *                | IDENTIFIER
+ *                | "super" "." IDENTIFIER ;
  *                | primaryError ;
  * 
  * Error productions:

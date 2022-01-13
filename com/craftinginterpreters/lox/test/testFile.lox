@@ -144,66 +144,76 @@
 //         bar(count);
 // };
 
-class Thing {
-  getCallback() {
-    return fun () {
-      print this;
-    };
+// class Thing {
+//   getCallback() {
+//     return fun () {
+//       print this;
+//     };
+//   }
+// }
+// 
+// var callback = Thing().getCallback();
+// callback();
+// 
+// class Cake {
+//   init() {
+//     this.flavor = "Black Forest";
+//   }
+//   taste() {
+//     var flavor = "delicious";
+//     print "The " + this.flavor + " cake is " + flavor + "!";
+//   }
+// 
+//   isGerman {
+//     return this.flavor == "Black Forest";
+//   }
+// 
+// }
+// 
+// class Math {
+//   class square(x) {
+//     return x * x;
+//   }
+// }
+// 
+// print Math.square(5);
+// 
+// 
+// var gateau = Cake();
+// gateau.foo = fun () {
+//   print "bar";
+// };
+// gateau.flavor = "Confetti";
+// gateau.taste();
+// gateau.foo();
+// 
+// Cake.bar = fun () {print "foo";};
+// 
+// Cake.bar();
+// 
+// gateau.bar = "gateau bar";
+// print gateau.bar;
+// 
+// Cake.baker = "Charles le Main";
+// Cake.printBakerName = fun () { print Cake.baker; };
+// Cake.printBakerName();
+// 
+// Math.PI = 3.14159;
+// print Math.PI;
+// 
+// if (gateau.isGerman) {
+//   print "The " + gateau.flavor + " cake is German";
+// } else {
+// 
+//   print "The " + gateau.flavor + " cake is NOT German!";
+// }
+
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
   }
 }
 
-var callback = Thing().getCallback();
-callback();
+class BostonCream < Doughnut {}
 
-class Cake {
-  init() {
-    this.flavor = "Black Forest";
-  }
-  taste() {
-    var flavor = "delicious";
-    print "The " + this.flavor + " cake is " + flavor + "!";
-  }
-
-  isGerman {
-    return this.flavor == "Black Forest";
-  }
-
-}
-
-class Math {
-  class square(x) {
-    return x * x;
-  }
-}
-
-print Math.square(5);
-
-
-var gateau = Cake();
-gateau.foo = fun () {
-  print "bar";
-};
-gateau.flavor = "Confetti";
-gateau.taste();
-gateau.foo();
-
-Cake.bar = fun () {print "foo";};
-
-Cake.bar();
-
-gateau.bar = "gateau bar";
-print gateau.bar;
-
-Cake.baker = "Charles le Main";
-Cake.printBakerName = fun () { print Cake.baker; };
-Cake.printBakerName();
-
-Math.PI = 3.14159;
-print Math.PI;
-
-if (gateau.isGerman) {
-  print "The " + gateau.flavor + " cake is German";
-} else {
-
-  print "The " + gateau.flavor + " cake is NOT German!";
-}
+BostonCream().cook();

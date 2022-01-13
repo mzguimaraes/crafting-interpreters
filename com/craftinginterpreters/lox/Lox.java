@@ -39,7 +39,13 @@ public class Lox {
     // runs a Lox file from disk to halting.
     public static void runFile(String path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
+
+        // separate results from whatever command invoked Lox, for result readability.
+        System.out.print("\n");
+
         run(new String(bytes, Charset.defaultCharset()));
+
+        System.out.print("\n");
 
         if (hadError) System.exit(65);
         if (hadRuntimeError) System.exit(70);
