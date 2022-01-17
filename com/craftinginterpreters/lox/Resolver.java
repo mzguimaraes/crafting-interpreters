@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum ClassType {
         NONE,
-        CLASS
+        CLASS,
+        SUBCLASS
     }
 
     void resolve(List<Stmt> stmts) {
@@ -109,10 +111,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void checkVarUsage(Map<String, VarState> scope) {
         for (Entry<String, VarState> entry : scope.entrySet()) {
             VarState state = entry.getValue();
-            if (state.status != VarLifecycle.USED && entry.getKey() != "this") {
+            if (state.status != VarLifecycle.USED && !isClassKeyword(entry.getKey())) {
                 Lox.warning(state.declaration, "Variable unused.");
             }
         }
+    }
+
+    /** returns true if identifier is "this" or "super" */
+    private Boolean isClassKeyword(String identifier) {
+        return Arrays.asList("this", "super").contains(identifier);
     }
 
     @Override
@@ -295,12 +302,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             if (stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
                 Lox.error(stmt.superclass.name, "A class can't inherit from itself.");
             } else {
+                currentClass = ClassType.SUBCLASS;
                 resolve(stmt.superclass);
+
+                // create scope with bound "super" for later calls.
+                beginScope();
+                scopes.peek().put("super", new VarState(VarLifecycle.DEFINED, stmt.name));
             }
         }
 
         beginScope();
-        scopes.peek().put("this", new VarState(VarLifecycle.DEFINED, null));
+        scopes.peek().put("this", new VarState(VarLifecycle.DEFINED, stmt.name));
         for (Stmt.Function method : stmt.methods) {
             FunctionType declaration = method.name.lexeme.equals("init") ?
                 FunctionType.INITIALIZER :
@@ -308,6 +320,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolveFunction(method, declaration);
         }
         endScope();
+
+        if (stmt.superclass != null) endScope();
+
         currentClass = enclosingClass;
         return null;
     }
@@ -329,6 +344,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitThisExpr(Expr.This expr) {
         if (currentClass == ClassType.NONE) {
             Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+        }
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'super' outside of a class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expr.keyword, "Can't use 'super' in a class with no superclass.");
         }
         resolveLocal(expr, expr.keyword);
         return null;

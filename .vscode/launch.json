@@ -9,14 +9,14 @@
       "name": "Launch Lox",
       "request": "launch",
       "mainClass": "com.craftinginterpreters.lox.Lox",
-      "projectName": "crafting-interpreters_a098beeb"
+      "projectName": "crafting-interpreters_f167b875"
     },
     {
       "type": "java",
       "name": "Run testFile.lox",
       "request": "launch",
       "mainClass": "com.craftinginterpreters.lox.Lox",
-      "projectName": "crafting-interpreters_a098beeb",
+      "projectName": "crafting-interpreters_f167b875",
       "args": "com/craftinginterpreters/lox/test/testFile.lox"
     },
     {
