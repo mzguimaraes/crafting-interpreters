@@ -1,0 +1,24 @@
+make out/clox -f /Users/marcusguimaraes/Desktop/crafting-interpreters/clox/Makefile -C /Users/marcusguimaraes/Desktop/crafting-interpreters/clox --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/marcusguimaraes/Desktop/crafting-interpreters/clox'
+printf "%8s %-40s %s\n" gcc chunk.c "-g -I."
+mkdir -p ./build/clox
+gcc -c -g -I. -o build/clox/chunk.o chunk.c
+ 
+printf "%8s %-40s %s\n" gcc debug.c "-g -I."
+mkdir -p ./build/clox
+gcc -c -g -I. -o build/clox/debug.o debug.c
+printf "%8s %-40s %s\n" gcc main.c "-g -I."
+mkdir -p ./build/clox
+gcc -c -g -I. -o build/clox/main.o main.c
+printf "%8s %-40s %s\n" gcc memory.c "-g -I."
+mkdir -p ./build/clox
+gcc -c -g -I. -o build/clox/memory.o memory.c
+ 
+printf "%8s %-40s %s\n" gcc value.c "-g -I."
+mkdir -p ./build/clox
+gcc -c -g -I. -o build/clox/value.o value.c
+printf "%8s %-40s %s\n" gcc out/clox "-g -I."
+mkdir -p ./out
+gcc -g -I. build/clox/chunk.o build/clox/debug.o build/clox/main.o build/clox/memory.o build/clox/value.o -o out/clox
+make: Leaving directory `/Users/marcusguimaraes/Desktop/crafting-interpreters/clox'
+ 

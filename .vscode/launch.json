@@ -39,6 +39,27 @@
       ],
       "preLaunchTask": "C/C++: gcc build active file",
       "miDebuggerPath": "/usr/bin/gdb"
+    },
+    {
+      "name": "clox - run",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/clox/out/clox",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/clox",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "clox: run make",
+      "miDebuggerPath": "/usr/local/bin/gdb"
     }
   ]
 }

@@ -5,5 +5,20 @@
   ],
   "files.associations": {
     "cstdio": "c"
-  }
+  },
+  "makefile.makefilePath": "clox/Makefile",
+  "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+  "makefile.makeDirectory": "clox",
+  "makefile.launchConfigurations": [
+    {
+      "cwd": "/Users/marcusguimaraes/Desktop/crafting-interpreters/out",
+      "binaryPath": "/Users/marcusguimaraes/Desktop/crafting-interpreters/out/clox",
+      "binaryArgs": []
+    },
+    {
+      "cwd": "/Users/marcusguimaraes/Desktop/crafting-interpreters/clox/out",
+      "binaryPath": "/Users/marcusguimaraes/Desktop/crafting-interpreters/clox/out/clox",
+      "binaryArgs": []
+    }
+  ]
 }
