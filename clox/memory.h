@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-// TODO: capacity should be a module-scope variable
+// TODO: initial capacity should be a module-scope variable
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
 
