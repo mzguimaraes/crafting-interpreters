@@ -1,6 +1,6 @@
 SHELL = /usr/bin/env bash
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-g -I.
 SOURCE_DIR=.
 BUILD_DIR=$(SOURCE_DIR)/build
 OUT_DIR=$(SOURCE_DIR)/out
